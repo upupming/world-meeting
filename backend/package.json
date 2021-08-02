@@ -6,10 +6,9 @@
   "private": false,
   "main": "/bin/www.js",
   "scripts": {
-    "compile": "ttsc; node --inspect ./build/bin/www.js",
-    "serve": "cross-env NODE_ENV=production nodemon ./build/bin/www.js",
-    "dev": "cross-env NODE_ENV=development nodemon -e ts --exec \"npm run compile\"",
-    "build": "ttsc"
+    "start": "node --inspect -r ts-node/register -r tsconfig-paths/register src/bin/www.ts",
+    "dev": "cross-env NODE_ENV=development nodemon -e ts,json,js --exec \"yarn start\"",
+    "serve": "cross-env NODE_ENV=production nodemon -e ts,json,js --exec \"yarn start\""
   },
   "repository": {
     "type": "git",
@@ -45,6 +44,8 @@
     "cross-env": "^7.0.3",
     "nodemon": "^2.0.7",
     "sqlite3": "^5.0.2",
+    "ts-node": "10.1.0",
+    "tsconfig-paths": "3.10.1",
     "ttypescript": "^1.5.12",
     "typescript": "^4.0.3"
   },

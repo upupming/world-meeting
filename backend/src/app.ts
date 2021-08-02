@@ -31,8 +31,9 @@ app.use(express.urlencoded({ extended: false }));
 /**
  * JWT中间件
  */
-app.use(checkJWT);
-app.use(checkValidUser);
+// TODO: 后期改为登录验证
+// app.use(checkJWT);
+// app.use(checkValidUser);
 
 /**
  * 业务路由
