@@ -37,7 +37,7 @@ defineProps({
 }
 
 .video-inactive {
-  border: 1px solid rgb(199, 199, 199);
+  border: 1px solid rgb(200, 200, 200);
   border-radius: 10px;
 }
 </style>
