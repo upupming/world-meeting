@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { ALIYUN_APPNAME, ALIYUN_LIVE_URL } from '@utils'
-import { Live, User } from 'models'
+import { ALIYUN_APPNAME, ALIYUN_LIVE_URL } from "@utils";
+import { Live, User } from "models";
 
 /**
  * 创建直播间
  * @param { Live } live
  */
 const Create = async (live: Live) => {
-  return await live.save()
-}
+  return await live.save();
+};
 
 /**
  * 遍历直播间
@@ -18,15 +18,15 @@ const Retrieve__All = () => {
     include: {
       model: User,
       attributes: {
-        exclude: ['password'],
+        exclude: ["password"],
       },
     },
     order: [
-      ['isActive', 'DESC'],
-      ['createdAt', 'DESC'],
+      ["isActive", "DESC"],
+      ["createdAt", "DESC"],
     ],
-  })
-}
+  });
+};
 
 /**
  * 查询某用户的直播间
@@ -40,11 +40,11 @@ const Retrieve__UID = (uid: number) => {
     include: {
       model: User,
       attributes: {
-        exclude: ['password'],
+        exclude: ["password"],
       },
     },
-  })
-}
+  });
+};
 
 /**
  * 通过stream查询用户直播间及其信息
@@ -58,11 +58,11 @@ const Retrieve__Suffix = (suffix: string) => {
     include: {
       model: User,
       attributes: {
-        exclude: ['password'],
+        exclude: ["password"],
       },
     },
-  })
-}
+  });
+};
 
 /**
  * 更新直播间信息
@@ -70,8 +70,8 @@ const Retrieve__Suffix = (suffix: string) => {
  * @param { Live } newLive
  */
 const Update = (oldLive: Live, newLive: Live): Promise<Live> => {
-  return Object.assign(oldLive, newLive).save()
-}
+  return Object.assign(oldLive, newLive).save();
+};
 
 export default {
   Create,
@@ -79,4 +79,4 @@ export default {
   Retrieve__All,
   Retrieve__Suffix,
   Update,
-}
+};
