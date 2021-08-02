@@ -4,7 +4,6 @@ root = true
 
 [*]
 charset = utf-8
-end_of_line = lf
 indent_style = space
 indent_size = 2
 insert_final_newline = true
@@ -12,6 +11,7 @@ insert_final_newline = true
 [*.{js,jsx,ts,tsx,mjs,mjsx,cjs,cjsx,sh,rb,vue}]
 max_line_length = 80
 trim_trailing_whitespace = true
+end_of_line = lf
 
 [*.py]
 max_line_length = 80
