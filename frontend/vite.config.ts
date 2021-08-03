@@ -9,4 +9,8 @@ export default defineConfig({
       "/api": "http://localhost:8005",
     },
   },
+  resolve: {
+    // Less ~ alias https://github.com/vitejs/vite/issues/2185
+    alias: [{ find: /^~/, replacement: "" }],
+  },
 });
