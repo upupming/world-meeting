@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { onBeforeUpdate, ref } from "vue";
-
 export interface Props {
   videoDevices: MediaDeviceInfo[];
   selectedVideoDeviceId: string;
   muted: boolean;
 }
-const props = defineProps<Props>();
+defineProps<Props>();
 const emit = defineEmits<{
   (e: "update:videoDevice", deviceId: string): void;
   (e: "update:muted", muted: boolean): void;
@@ -31,17 +29,14 @@ const updateVideoDevice = (deviceId: string) => {
         muted: muted,
       }"
     >
-      <div v-if="muted" class="video-button-mic-status">
+      <div v-if="muted" class="video-button-status">
         <i
           @click="micUnmute"
-          class="fas fa-video-slash video-button-mic-status-icon"
+          class="fas fa-video-slash video-button-status-icon"
         ></i>
       </div>
-      <div v-else class="video-button-mic-status">
-        <i
-          @click="micMute"
-          class="fas fa-video video-button-mic-status-icon"
-        ></i>
+      <div v-else class="video-button-status">
+        <i @click="micMute" class="fas fa-video video-button-status-icon"></i>
       </div>
     </div>
     <div class="dropdown-content">
@@ -83,7 +78,7 @@ const updateVideoDevice = (deviceId: string) => {
     background-color: @red;
   }
 
-  &-mic-status {
+  &-status {
     padding: 10px 15px;
     display: flex;
     justify-content: center;
