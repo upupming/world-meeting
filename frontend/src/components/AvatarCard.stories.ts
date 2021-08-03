@@ -1,4 +1,4 @@
-import AvatarCard, { Props } from "./AvatarCard.vue";
+import AvatarCard, { AvatarCardProps } from "./AvatarCard.vue";
 import { Story } from "@storybook/vue3/types-6-0";
 import { onMounted, ref } from "vue";
 
@@ -10,7 +10,7 @@ export default {
 
 // 支持异步生成的 props
 // https://storybook.js.org/docs/vue/writing-stories/loaders
-const Template: Story<Props> = (args) => ({
+const Template: Story<AvatarCardProps> = (args) => ({
   // Components used in your story `template` are defined in the `components` object
   components: { AvatarCard },
   // The story's `args` need to be mapped into the template through the `setup()` method

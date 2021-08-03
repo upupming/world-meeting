@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useVModel } from "@vueuse/core";
 
-export interface Props {
+export interface AvatarCardProps {
   avatarURL: string;
   username: string;
   modelValue: boolean;
   srcObject?: MediaProvider;
 }
 const emit = defineEmits();
-const props = defineProps<Props>();
+const props = defineProps<AvatarCardProps>();
 
 const muted = useVModel(props, "modelValue", emit);
 const micMute = () => {
@@ -80,7 +80,7 @@ const micUnmute = () => {
     bottom: 20px;
     padding: 10px;
     border-radius: 5px;
-    background-color: fade(@current-line, 40%);
+    background-color: fade(@current-line, 50%);
   }
 
   &-mic-status {
@@ -90,7 +90,7 @@ const micUnmute = () => {
     position: absolute;
     right: 20px;
     bottom: 20px;
-    background-color: fade(@current-line, 40%);
+    background-color: fade(@current-line, 50%);
     display: flex;
     justify-content: center;
     align-items: center;
