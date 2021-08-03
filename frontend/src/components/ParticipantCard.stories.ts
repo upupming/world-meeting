@@ -1,4 +1,4 @@
-import ParticipantCard, { Props } from "./ParticipantCard.vue";
+import ParticipantCard, { ParticipantCardProps } from "./ParticipantCard.vue";
 import { Story } from "@storybook/vue3/types-6-0";
 import { ref } from "vue";
 
@@ -8,7 +8,7 @@ export default {
   argTypes: {},
 };
 
-const Template: Story<Props> = () => ({
+const Template: Story<ParticipantCardProps> = () => ({
   // Components used in your story `template` are defined in the `components` object
   components: { ParticipantCard },
   // The story's `args` need to be mapped into the template through the `setup()` method
@@ -28,6 +28,8 @@ const Template: Story<Props> = () => ({
   },
   // And then the `args` are bound to your component with `v-bind="args"`
   template: `<participant-card
+            username='Yiming Li'
+            avatarURL='https://avatars.githubusercontent.com/u/24741764?v=4)'
             :audioMuted='audioMuted'
             :videoMuted='videoMuted' @update:audioMuted='updateAudioMuted'
             @update:videoMuted='updateVideoMuted'  />`,

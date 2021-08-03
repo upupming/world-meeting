@@ -84,7 +84,7 @@ const onClearFile = () => {
   box-sizing: border-box;
   padding: 0 16px;
   width: 100%;
-  height: 64px;
+  height: 48px;
   display: flex;
   align-items: center;
 
@@ -121,7 +121,7 @@ const onClearFile = () => {
         flex-grow: 1;
         font-size: 20px;
         padding: 0 24px;
-        border-radius: 48px;
+        border-radius: 24px;
         border: none;
         outline: none;
       }
@@ -135,7 +135,7 @@ const onClearFile = () => {
         color: @background;
         background-color: @green;
         border: none;
-        border-radius: 24px;
+        border-radius: 12px;
         height: 100%;
         width: 128px;
         font-size: 20px;
