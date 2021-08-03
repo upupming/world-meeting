@@ -12,13 +12,10 @@ const props = defineProps<Props>();
 
 const muted = useVModel(props, "modelValue", emit);
 const micMute = () => {
-  console.log(`mute mic`);
   muted.value = true;
 };
 const micUnmute = () => {
-  console.log(`unmute mic`);
   muted.value = false;
-  console.log(muted.value);
 };
 </script>
 
@@ -54,7 +51,7 @@ const micUnmute = () => {
   </div>
 </template>
 
-<style lang="less">
+<style lang="less" scoped>
 @import "../assets/less/common.less";
 
 .avatar-card {
