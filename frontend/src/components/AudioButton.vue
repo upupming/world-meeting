@@ -1,0 +1,99 @@
+<script setup lang="ts">
+import { onBeforeUpdate, ref } from "vue";
+
+export interface Props {
+  audioDevices: MediaDeviceInfo[];
+  selectedAudioDeviceId: string;
+  muted: boolean;
+}
+const props = defineProps<Props>();
+const emit = defineEmits<{
+  (e: "update:audioDevice", deviceId: string): void;
+  (e: "update:muted", muted: boolean): void;
+}>();
+
+const micMute = () => {
+  emit("update:muted", true);
+};
+const micUnmute = () => {
+  emit("update:muted", false);
+};
+const updateAudioDevice = (deviceId: string) => {
+  emit("update:audioDevice", deviceId);
+};
+</script>
+
+<template>
+  <div class="dropdown">
+    <div
+      :class="{
+        'audio-button': true,
+        muted: muted,
+      }"
+    >
+      <div v-if="muted" class="audio-button-mic-status">
+        <i
+          @click="micUnmute"
+          class="fas fa-microphone-slash audio-button-mic-status-icon"
+        ></i>
+      </div>
+      <div v-else class="audio-button-mic-status">
+        <i
+          @click="micMute"
+          class="fas fa-microphone audio-button-mic-status-icon"
+        ></i>
+      </div>
+    </div>
+    <div class="dropdown-content">
+      <label
+        v-for="device in audioDevices"
+        class="container"
+        :key="device.deviceId"
+      >
+        {{ device.label }}
+        <input
+          type="radio"
+          :checked="selectedAudioDeviceId === device.deviceId"
+          @change="updateAudioDevice(device.deviceId)"
+          name="radio"
+        />
+        <span class="checkmark"></span>
+      </label>
+    </div>
+  </div>
+</template>
+
+<style lang="less" scoped>
+@import "../assets/less/common.less";
+
+.audio-button {
+  position: relative;
+  background-color: fade(@current-line, 40%);
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  &:hover {
+    background-color: fade(@current-line, 60%);
+  }
+  &.muted {
+    background-color: @red;
+  }
+
+  &-mic-status {
+    padding: 10px 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &-icon {
+      width: 32px;
+      text-align: center;
+      font-size: 25px;
+    }
+  }
+}
+</style>
