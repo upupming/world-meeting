@@ -8,7 +8,7 @@ export default {
   argTypes: {},
 };
 
-const Template: Story<Props> = (args) => ({
+const Template: Story<Props> = () => ({
   // Components used in your story `template` are defined in the `components` object
   components: { AudioButton },
   // The story's `args` need to be mapped into the template through the `setup()` method
@@ -19,8 +19,10 @@ const Template: Story<Props> = (args) => ({
     onMounted(async () => {
       const devices = await navigator.mediaDevices.enumerateDevices();
       audioDevices.value = devices;
-      audioDevices.value.filter((device) => device.kind == "audioinput");
-      selectedAudioDeviceId.value = devices[0].deviceId;
+      audioDevices.value = audioDevices.value.filter(
+        (device) => device.kind == "audioinput"
+      );
+      selectedAudioDeviceId.value = audioDevices.value[0].deviceId;
       console.log("selectedAudioDeviceId.value", selectedAudioDeviceId.value);
     });
 
@@ -43,7 +45,7 @@ const Template: Story<Props> = (args) => ({
   },
   // And then the `args` are bound to your component with `v-bind="args"`
   template:
-    '<audio-button :audioDevices="audioDevices" :muted="muted" :selectedAudioDeviceId="selectedAudioDeviceId" @update:muted="updateMuted" @update:audioDevice="updateAudioDevice" />',
+    '<div style="margin-top: 300px;"><audio-button :audioDevices="audioDevices" :muted="muted" :selectedAudioDeviceId="selectedAudioDeviceId" @update:muted="updateMuted" @update:audioDevice="updateAudioDevice" /></div>',
 });
 
 export const AudioButtonEx1 = Template.bind({});
