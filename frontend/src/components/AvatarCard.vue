@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { useVModel } from "@vueuse/core";
-
 export interface AvatarCardProps {
   avatarURL: string;
   username: string;
-  modelValue: boolean;
+  muted: boolean;
   srcObject?: MediaProvider;
 }
-const emit = defineEmits();
 const props = defineProps<AvatarCardProps>();
+const emit = defineEmits<{
+  (e: "update:audioDevice", deviceId: string): void;
+  (e: "update:muted", muted: boolean): void;
+}>();
 
-const muted = useVModel(props, "modelValue", emit);
 const micMute = () => {
-  muted.value = true;
+  emit("update:muted", true);
 };
 const micUnmute = () => {
-  muted.value = false;
+  emit("update:muted", false);
 };
 </script>
 
@@ -23,7 +23,9 @@ const micUnmute = () => {
   <div
     class="avatar-card"
     :style="{
-      backgroundImage: `url(${avatarURL})`,
+      backgroundImage: `url(${
+        avatarURL || 'https://avatars.githubusercontent.com/u/24741764?v=4'
+      })`,
     }"
   >
     <video
@@ -72,6 +74,7 @@ const micUnmute = () => {
     right: 0;
     top: 0;
     bottom: 0;
+    object-fit: cover;
   }
 
   &-username {
