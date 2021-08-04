@@ -81,5 +81,11 @@ export const signalServerInit = (server: http.Server): void => {
         .to(user.roomId)
         .emit("new-icecandidate", { candidate, from: user.username });
     });
+    socket.on("sendMessage", (message) => {
+      io.to(user.roomId).emit("new-message", {
+        message,
+        from: user.username,
+      });
+    });
   });
 };
