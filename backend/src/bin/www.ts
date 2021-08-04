@@ -4,6 +4,7 @@ import debug from "debug";
 import config from "config";
 import { init } from "database";
 import { LiveSocketInitial } from "@routes/LiveRouter";
+import { signalServerInit } from "@routes/SignalRouter";
 import app from "app";
 
 const { port } = config;
@@ -31,6 +32,7 @@ init()
     SERVER.on("listening", onListening);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     LiveSocketInitial(SERVER);
+    signalServerInit(SERVER);
   })
   .catch((e) => {
     console.log(String(e));

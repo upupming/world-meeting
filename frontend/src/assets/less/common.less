@@ -13,6 +13,9 @@
 @red: #ff5555;
 @yellow: #f1fa8c;
 
+@outer-color: fade(@background, 30%);
+@inner-color: fade(@background, 70%);
+
 body {
   // padding: 0 !important;
   // margin: 0 !important;
@@ -21,21 +24,29 @@ body {
   width: 100vw;
   height: 100vh;
   font-size: 20px;
-  background-color: @background;
+  background-color: fade(@background, 80%);
   color: @foreground;
+}
+
+*::-webkit-scrollbar {
+  display: none;
 }
 
 .dropdown {
   position: relative;
+  display: flex;
+  justify-content: center;
 }
 .dropdown-content {
   padding-left: 10px;
   position: absolute;
+  border-radius: 10px;
   left: 0;
   bottom: 100%;
-  z-index: 1;
+  z-index: 1000;
   width: max-content;
   display: none;
+  background-color: @background;
   .dropdown:hover & {
     display: block;
   }
@@ -44,7 +55,7 @@ body {
   display: block;
   position: relative;
   padding-left: 35px;
-  margin-bottom: 12px;
+  margin: 12px;
   cursor: pointer;
   font-size: 22px;
   -webkit-user-select: none;
@@ -65,20 +76,22 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+  bottom: 0;
+  right: 0;
   height: 25px;
   width: 25px;
-  // background-color: #eee;
+  background-color: @foreground;
   border-radius: 50%;
 }
 
 /* On mouse-over, add a grey background color */
 .container:hover input ~ .checkmark {
-  background-color: @selection;
+  background-color: fade(@foreground, 70%);
 }
 
 /* When the radio button is checked, add a blue background */
 .container input:checked ~ .checkmark {
-  background-color: @cyan;
+  background-color: @green;
 }
 
 /* Create the indicator (the dot/circle - hidden when not checked) */
@@ -101,4 +114,9 @@ body {
   height: 8px;
   border-radius: 50%;
   background: @foreground;
+}
+
+.input-label {
+  display: inline-block;
+  width: 100px;
 }
