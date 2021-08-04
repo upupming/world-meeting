@@ -98,23 +98,27 @@ const selectedVideoDeviceId = ref("");
 const videoMuted = ref(true);
 const selectedAudioDeviceId = ref("");
 const audioMuted = ref(true);
-const audioSource: Ref<null | string> = ref(null);
-const videoSource: Ref<null | string> = ref(null);
 
 const constraints = computed(() => ({
-  audio: {
-    deviceId: audioSource.value ? { exact: audioSource.value } : undefined,
-  },
-  video: {
-    deviceId: videoSource.value ? { exact: videoSource.value } : undefined,
-  },
+  audio:
+    !audioMuted.value && selectedAudioDeviceId.value
+      ? {
+          deviceId: { exact: selectedAudioDeviceId.value },
+        }
+      : undefined,
+  video:
+    !videoMuted.value && selectedVideoDeviceId.value
+      ? {
+          deviceId: { exact: selectedVideoDeviceId.value },
+        }
+      : undefined,
 }));
-const stream: Ref<null | MediaStream> = ref(null);
-const screenStream: Ref<null | MediaStream> = ref(null);
+const stream: Ref<undefined | MediaStream> = ref(undefined);
+const screenStream: Ref<undefined | MediaStream> = ref(undefined);
 const onToggleScreenStream = async () => {
   if (screenStream.value) {
     screenStream.value.getTracks().forEach((track) => track.stop());
-    screenStream.value = null;
+    screenStream.value = undefined;
   } else {
     screenStream.value = await navigator.mediaDevices.getDisplayMedia({
       video: true,
@@ -135,14 +139,30 @@ onMounted(async () => {
     console.log("client disconnect");
   });
   // 只是为了获取权限，使得 enumerateDevices 能够正常运行
-  await navigator.mediaDevices.getUserMedia(constraints.value);
+  (
+    await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true,
+    })
+  )
+    .getTracks()
+    .forEach((track) => track.stop());
 
   const devices = await navigator.mediaDevices.enumerateDevices();
   videoDevices.value = devices.filter((device) => device.kind === "videoinput");
   audioDevices.value = devices.filter((device) => device.kind == "audioinput");
+  console.log("videoDevices.value[0].deviceId", videoDevices.value[0]);
+  selectedVideoDeviceId.value = videoDevices.value[0].deviceId;
+  selectedAudioDeviceId.value = audioDevices.value[0].deviceId;
 });
 
 watch([videoMuted, audioMuted], async () => {
+  stream.value?.getTracks().forEach((track) => track.stop());
+  console.log("constraints.value", constraints.value);
+  if (videoMuted.value && audioMuted.value) {
+    stream.value = undefined;
+    return;
+  }
   // 请求音视频设备
   stream.value = await navigator.mediaDevices.getUserMedia(constraints.value);
 });
