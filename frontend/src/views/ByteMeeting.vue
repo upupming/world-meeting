@@ -24,12 +24,6 @@ const lorem = new LoremIpsum({
 });
 
 const message = ref("");
-const sendMessage = (message: string) => {
-  console.log("sendMessage", message);
-};
-const sendFile = (file: File) => {
-  console.log("sendFile", file);
-};
 
 const videoDevices: Ref<MediaDeviceInfo[]> = ref([]);
 const audioDevices: Ref<MediaDeviceInfo[]> = ref([]);
@@ -59,6 +53,22 @@ const user = reactive({
   audioMuted: true,
   screenSharing: false,
 });
+interface Message {
+  from: string;
+  message: string;
+}
+
+const messages: Ref<Message[]> = ref([]);
+
+const sendMessage = (message: string) => {
+  console.log("sendMessage", message);
+  if (socket.value) {
+    socket.value.emit("sendMessage", message);
+  }
+};
+const sendFile = (file: File) => {
+  console.log("sendFile", file);
+};
 
 // TODO: 支持 remove track
 
@@ -400,6 +410,9 @@ const onStartCall = async () => {
     console.log("added remote ice candidate", from, candidate);
     peerConnection.addIceCandidate(candidate);
   });
+  socket.value.on("new-message", (message) => {
+    messages.value.push(message);
+  });
 
   // 将 username 和 roomId 附在 socket 上之后再 connect
   socket.value.auth = user;
@@ -496,14 +509,27 @@ const onStartCall = async () => {
           />
         </div>
         <div class="byte-meeting-chat">
-          <div class="byte-meeting-chat-messages"></div>
-          <div class="byte-meeting-chat-inputbox">
-            <InputBox
-              v-model="message"
-              @send:file="sendFile"
-              @send:message="sendMessage"
-            />
+          <div class="byte-meeting-chat-messages">
+            <div
+              v-for="message in messages"
+              :key="message.message"
+              :class="{
+                'byte-meeting-chat-message': true,
+                me: message.from === user.username,
+              }"
+            >
+              <span class="byte-meeting-chat-from">{{ message.from }}</span>
+              <br />
+              <span class="byte-meeting-chat-text">{{ message.message }}</span>
+            </div>
           </div>
+        </div>
+        <div class="byte-meeting-chat-inputbox">
+          <InputBox
+            v-model="message"
+            @send:file="sendFile"
+            @send:message="sendMessage"
+          />
         </div>
       </div>
     </div>
@@ -610,6 +636,7 @@ const onStartCall = async () => {
     box-shadow: 10px 5px 10px 10px rgb(0 0 0 / 15%);
   }
   &-right {
+    width: 480px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -625,8 +652,27 @@ const onStartCall = async () => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    overflow: scroll;
     &-messages {
       flex-grow: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 12px;
+    }
+    &-message {
+      position: relative;
+      margin: 12px 12px 0 12px;
+      &.me {
+        span {
+          float: right;
+          text-align: right;
+        }
+      }
+    }
+    &-from {
+      color: @orange;
+      font-size: 24px;
     }
     &-inputbox {
       padding: 12px 0;
