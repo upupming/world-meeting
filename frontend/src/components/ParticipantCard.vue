@@ -1,9 +1,11 @@
 <script setup lang="ts">
-export interface Props {
+export interface ParticipantCardProps {
+  avatarURL: string;
+  username: string;
   audioMuted: boolean;
   videoMuted: boolean;
 }
-const props = defineProps<Props>();
+const props = defineProps<ParticipantCardProps>();
 const emit = defineEmits<{
   (e: "update:audioMuted", muted: boolean): void;
   (e: "update:videoMuted", muted: boolean): void;
@@ -15,10 +17,10 @@ const emit = defineEmits<{
     <div
       class="participant-card-avatar"
       :style="{
-        backgroundImage: `url(https://avatars.githubusercontent.com/u/24741764?v=4)`,
+        backgroundImage: `url(${avatarURL})`,
       }"
     ></div>
-    <div class="participant-card-name">Yiming Li</div>
+    <div class="participant-card-name">{{ username }}</div>
     <div class="participant-card-icons">
       <div
         :class="{
@@ -68,10 +70,14 @@ const emit = defineEmits<{
 .participant-card {
   padding: 10px;
   height: 64px;
-  border-radius: 30px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-left: 24px;
+  &:hover {
+    background: @selection;
+  }
   &-avatar {
     width: 64px;
     height: 64px;
