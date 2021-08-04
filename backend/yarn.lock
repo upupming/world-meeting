@@ -59,9 +59,9 @@
   resolved "https://registry.nlark.com/@types/cookie/download/@types/cookie-0.4.1.tgz#bfd02c1f2224567676c1545199f87c3a861d878d"
   integrity sha1-v9AsHyIkVnZ2wVRRmfh8OoYdh40=
 
-"@types/cors@^2.8.8":
+"@types/cors@^2.8.10":
   version "2.8.12"
-  resolved "https://registry.nlark.com/@types/cors/download/@types/cors-2.8.12.tgz#6b2c510a7ad7039e98e7b8d3d6598f4359e5c080"
+  resolved "https://registry.nlark.com/@types/cors/download/@types/cors-2.8.12.tgz?cache=0&sync_timestamp=1625816695171&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40types%2Fcors%2Fdownload%2F%40types%2Fcors-2.8.12.tgz#6b2c510a7ad7039e98e7b8d3d6598f4359e5c080"
   integrity sha1-ayxRCnrXA56Y57jT1lmPQ1nlwIA=
 
 "@types/express-jwt@^6.0.0":
@@ -115,7 +115,7 @@
   resolved "https://registry.nlark.com/@types/node/download/@types/node-16.4.10.tgz#e57e2a54fc6da58da94b3571b1cb456d39f88597"
   integrity sha1-5X4qVPxtpY2pSzVxsctFbTn4hZc=
 
-"@types/node@^14.11.4":
+"@types/node@^14.11.4", "@types/node@^14.14.43":
   version "14.17.7"
   resolved "https://registry.nlark.com/@types/node/download/@types/node-14.17.7.tgz#e106997493e617edeba52fdbd965930da494113b"
   integrity sha1-4QaZdJPmF+3rpS/b2WWTDaSUETs=
@@ -278,6 +278,11 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.npm.taobao.org/asynckit/download/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
+
+awaitqueue@^2.3.3:
+  version "2.3.3"
+  resolved "https://registry.npm.taobao.org/awaitqueue/download/awaitqueue-2.3.3.tgz#35e6568970fcac3de1644a2c28abc1074045b570"
+  integrity sha1-NeZWiXD8rD3hZEosKKvBB0BFtXA=
 
 aws-sign2@~0.7.0:
   version "0.7.0"
@@ -627,7 +632,7 @@ debug@^3.2.6:
   dependencies:
     ms "^2.1.1"
 
-debug@^4.1.1, debug@~4.3.1:
+debug@^4.1.1, debug@^4.3.2, debug@~4.3.1:
   version "4.3.2"
   resolved "https://registry.nlark.com/debug/download/debug-4.3.2.tgz?cache=0&sync_timestamp=1625374632845&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fdebug%2Fdownload%2Fdebug-4.3.2.tgz#f0a49c18ac8779e31d4a0c6029dfb76873c7428b"
   integrity sha1-8KScGKyHeeMdSgxgKd+3aHPHQos=
@@ -757,10 +762,10 @@ engine.io-parser@~4.0.0:
   dependencies:
     base64-arraybuffer "0.1.4"
 
-engine.io@~4.1.0:
-  version "4.1.1"
-  resolved "https://registry.nlark.com/engine.io/download/engine.io-4.1.1.tgz#9a8f8a5ac5a5ea316183c489bf7f5b6cf91ace5b"
-  integrity sha1-mo+KWsWl6jFhg8SJv39bbPkazls=
+engine.io@~5.1.1:
+  version "5.1.1"
+  resolved "https://registry.nlark.com/engine.io/download/engine.io-5.1.1.tgz#a1f97e51ddf10cbd4db8b5ff4b165aad3760cdd3"
+  integrity sha1-ofl+Ud3xDL1NuLX/SxZarTdgzdM=
   dependencies:
     accepts "~1.3.4"
     base64id "2.0.0"
@@ -1089,6 +1094,13 @@ graceful-fs@^4.1.2:
   resolved "https://registry.nlark.com/graceful-fs/download/graceful-fs-4.2.6.tgz?cache=0&sync_timestamp=1618846820463&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fgraceful-fs%2Fdownload%2Fgraceful-fs-4.2.6.tgz#ff040b2b0853b23c3d31027523706f1885d76bee"
   integrity sha1-/wQLKwhTsjw9MQJ1I3BvGIXXa+4=
 
+h264-profile-level-id@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npm.taobao.org/h264-profile-level-id/download/h264-profile-level-id-1.0.1.tgz#92033c190766c846e57c6a97e4c1d922943a9cce"
+  integrity sha1-kgM8GQdmyEblfGqX5MHZIpQ6nM4=
+  dependencies:
+    debug "^4.1.1"
+
 har-schema@^2.0.0:
   version "2.0.0"
   resolved "https://registry.nlark.com/har-schema/download/har-schema-2.0.0.tgz#a94c2224ebcac04782a0d9035521f24735b7ec92"
@@ -1111,6 +1123,11 @@ has-flag@^4.0.0:
   version "4.0.0"
   resolved "https://registry.nlark.com/has-flag/download/has-flag-4.0.0.tgz#944771fd9c81c81265c4d6941860da06bb59479b"
   integrity sha1-lEdx/ZyByBJlxNaUGGDaBrtZR5s=
+
+has-flag@^5.0.0:
+  version "5.0.1"
+  resolved "https://registry.nlark.com/has-flag/download/has-flag-5.0.1.tgz?cache=0&sync_timestamp=1626715907927&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fhas-flag%2Fdownload%2Fhas-flag-5.0.1.tgz#5483db2ae02a472d1d0691462fc587d1843cd940"
+  integrity sha1-VIPbKuAqRy0dBpFGL8WH0YQ82UA=
 
 has-unicode@^2.0.0:
   version "2.0.1"
@@ -1545,6 +1562,20 @@ media-typer@0.3.0:
   resolved "https://registry.nlark.com/media-typer/download/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
   integrity sha1-hxDXrwqmJvj/+hzgAWhUUmMlV0g=
 
+mediasoup@3.8.0:
+  version "3.8.0"
+  resolved "https://registry.nlark.com/mediasoup/download/mediasoup-3.8.0.tgz#0db17dd4268a301c18349b84bbb74953ec910baf"
+  integrity sha1-DbF91CaKMBwYNJuEu7dJU+yRC68=
+  dependencies:
+    "@types/node" "^14.14.43"
+    awaitqueue "^2.3.3"
+    debug "^4.3.2"
+    h264-profile-level-id "^1.0.1"
+    netstring "^0.3.0"
+    random-number "^0.0.9"
+    supports-color "^9.0.2"
+    uuid "^8.3.2"
+
 merge-descriptors@1.0.1:
   version "1.0.1"
   resolved "https://registry.nlark.com/merge-descriptors/download/merge-descriptors-1.0.1.tgz#b00aaa556dd8b44568150ec9d1b953f3f90cbb61"
@@ -1682,6 +1713,11 @@ negotiator@0.6.2:
   version "0.6.2"
   resolved "https://registry.nlark.com/negotiator/download/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha1-/qz3zPUlp3rpY0Q2pkiD/+yjRvs=
+
+netstring@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.npm.taobao.org/netstring/download/netstring-0.3.0.tgz#868dc5b20c58d3f7305531d49368eaaabd19b712"
+  integrity sha1-ho3FsgxY0/cwVTHUk2jqqr0ZtxI=
 
 node-addon-api@^3.0.0:
   version "3.2.1"
@@ -1965,6 +2001,11 @@ qs@6.7.0:
   version "6.7.0"
   resolved "https://registry.npm.taobao.org/qs/download/qs-6.7.0.tgz?cache=0&sync_timestamp=1616385371256&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fqs%2Fdownload%2Fqs-6.7.0.tgz#41dc1a015e3d581f1621776be31afb2876a9b1bc"
   integrity sha1-QdwaAV49WB8WIXdr4xr7KHapsbw=
+
+random-number@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.npm.taobao.org/random-number/download/random-number-0.0.9.tgz#5907b96f05041807c52aed601c869524d86fbbd5"
+  integrity sha1-WQe5bwUEGAfFKu1gHIaVJNhvu9U=
 
 range-parser@~1.2.0, range-parser@~1.2.1:
   version "1.2.1"
@@ -2258,34 +2299,34 @@ signal-exit@^3.0.0, signal-exit@^3.0.2:
   resolved "https://registry.nlark.com/signal-exit/download/signal-exit-3.0.3.tgz#a1410c2edd8f077b08b4e253c8eacfcaf057461c"
   integrity sha1-oUEMLt2PB3sItOJTyOrPyvBXRhw=
 
-socket.io-adapter@~2.1.0:
-  version "2.1.0"
-  resolved "https://registry.nlark.com/socket.io-adapter/download/socket.io-adapter-2.1.0.tgz#edc5dc36602f2985918d631c1399215e97a1b527"
-  integrity sha1-7cXcNmAvKYWRjWMcE5khXpehtSc=
+socket.io-adapter@~2.3.1:
+  version "2.3.1"
+  resolved "https://registry.nlark.com/socket.io-adapter/download/socket.io-adapter-2.3.1.tgz?cache=0&sync_timestamp=1621465499119&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fsocket.io-adapter%2Fdownload%2Fsocket.io-adapter-2.3.1.tgz#a442720cb09a4823cfb81287dda1f9b52d4ccdb2"
+  integrity sha1-pEJyDLCaSCPPuBKH3aH5tS1MzbI=
 
-socket.io-parser@~4.0.3:
+socket.io-parser@~4.0.4:
   version "4.0.4"
-  resolved "https://registry.npm.taobao.org/socket.io-parser/download/socket.io-parser-4.0.4.tgz?cache=0&sync_timestamp=1610675333556&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fsocket.io-parser%2Fdownload%2Fsocket.io-parser-4.0.4.tgz#9ea21b0d61508d18196ef04a2c6b9ab630f4c2b0"
+  resolved "https://registry.npm.taobao.org/socket.io-parser/download/socket.io-parser-4.0.4.tgz?cache=0&sync_timestamp=1610669809014&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fsocket.io-parser%2Fdownload%2Fsocket.io-parser-4.0.4.tgz#9ea21b0d61508d18196ef04a2c6b9ab630f4c2b0"
   integrity sha1-nqIbDWFQjRgZbvBKLGuatjD0wrA=
   dependencies:
     "@types/component-emitter" "^1.2.10"
     component-emitter "~1.3.0"
     debug "~4.3.1"
 
-socket.io@^3.1.1:
-  version "3.1.2"
-  resolved "https://registry.nlark.com/socket.io/download/socket.io-3.1.2.tgz#06e27caa1c4fc9617547acfbb5da9bc1747da39a"
-  integrity sha1-BuJ8qhxPyWF1R6z7tdqbwXR9o5o=
+socket.io@4.1.3:
+  version "4.1.3"
+  resolved "https://registry.nlark.com/socket.io/download/socket.io-4.1.3.tgz?cache=0&sync_timestamp=1625913035180&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fsocket.io%2Fdownload%2Fsocket.io-4.1.3.tgz#d114328ef27ab31b889611792959c3fa6d502500"
+  integrity sha1-0RQyjvJ6sxuIlhF5KVnD+m1QJQA=
   dependencies:
     "@types/cookie" "^0.4.0"
-    "@types/cors" "^2.8.8"
+    "@types/cors" "^2.8.10"
     "@types/node" ">=10.0.0"
     accepts "~1.3.4"
     base64id "~2.0.0"
     debug "~4.3.1"
-    engine.io "~4.1.0"
-    socket.io-adapter "~2.1.0"
-    socket.io-parser "~4.0.3"
+    engine.io "~5.1.1"
+    socket.io-adapter "~2.3.1"
+    socket.io-parser "~4.0.4"
 
 source-map-support@^0.5.17:
   version "0.5.19"
@@ -2433,6 +2474,13 @@ supports-color@^7.1.0:
   integrity sha1-G33NyzK4E4gBs+R4umpRyqiWSNo=
   dependencies:
     has-flag "^4.0.0"
+
+supports-color@^9.0.2:
+  version "9.0.2"
+  resolved "https://registry.nlark.com/supports-color/download/supports-color-9.0.2.tgz?cache=0&sync_timestamp=1626703400240&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fsupports-color%2Fdownload%2Fsupports-color-9.0.2.tgz#50f082888e4b0a4e2ccd2d0b4f9ef4efcd332485"
+  integrity sha1-UPCCiI5LCk4szS0LT570780zJIU=
+  dependencies:
+    has-flag "^5.0.0"
 
 tar@^2.0.0:
   version "2.2.2"
@@ -2634,7 +2682,7 @@ uuid@^3.3.2:
   resolved "https://registry.nlark.com/uuid/download/uuid-3.4.0.tgz?cache=0&sync_timestamp=1622213399220&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fuuid%2Fdownload%2Fuuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha1-sj5DWK+oogL+ehAK8fX4g/AgB+4=
 
-uuid@^8.1.0:
+uuid@^8.1.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.nlark.com/uuid/download/uuid-8.3.2.tgz?cache=0&sync_timestamp=1622213399220&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fuuid%2Fdownload%2Fuuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha1-gNW1ztJxu5r2xEXyGhoExgbO++I=
