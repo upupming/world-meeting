@@ -21,6 +21,11 @@ const routes = [
     name: "Room",
     component: () => import("../views/Room.vue"),
   },
+  {
+    path: "/byte-meeting",
+    name: "ByteMeeting",
+    component: () => import("../views/ByteMeeting.vue"),
+  },
 ];
 
 const router = createRouter({
