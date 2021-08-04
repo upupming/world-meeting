@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": "http://localhost:8005",
+      "/socket.io": "http://localhost:8005",
     },
   },
   resolve: {

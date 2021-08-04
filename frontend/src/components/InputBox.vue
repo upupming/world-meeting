@@ -89,7 +89,7 @@ const onClearFile = () => {
   align-items: center;
 
   &-filename {
-    padding: 4px 16px;
+    padding: 0px 16px 12px;
   }
 
   &-action-icons {

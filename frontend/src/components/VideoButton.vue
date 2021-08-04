@@ -63,16 +63,16 @@ const updateVideoDevice = (deviceId: string) => {
 
 .video-button {
   position: relative;
-  background-color: fade(@current-line, 40%);
+  background-color: lighten(@current-line, 10%);
   border-radius: 10px;
   cursor: pointer;
-  width: 100px;
-  height: 60px;
+  width: 72px;
+  height: 48px;
   display: flex;
   justify-content: center;
   align-items: center;
   &:hover {
-    background-color: fade(@current-line, 60%);
+    background-color: lighten(@current-line, 20%);
   }
   &.muted {
     background-color: @red;
