@@ -1,5 +1,15 @@
 <template>
-  <Suspense><router-view /></Suspense>
+  <div class="byte-meeting">
+    <div class="byte-meeting-sidebar">
+      <router-link to="/byte-meeting">
+        <i class="fas fa-home"></i>
+      </router-link>
+      <router-link to="/about">
+        <i class="fas fa-chart-pie"></i>
+      </router-link>
+    </div>
+    <Suspense><router-view /></Suspense>
+  </div>
 </template>
 
 <script lang="ts">
@@ -23,5 +33,39 @@ body,
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+.byte-meeting {
+  font-family: "Abril Text";
+  width: 100%;
+  height: 100%;
+
+  font-size: 20px;
+  display: flex;
+  flex-direction: row;
+  &-sidebar {
+    width: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 5px 10px 0 rgb(0 0 0 / 15%);
+    background-color: @outer-color;
+    border-right: 1px solid fade(@current-line, 10%);
+
+    a {
+      padding: 12px;
+      color: @foreground;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      &:hover {
+        color: fade(@foreground, 70%);
+      }
+      i {
+        font-size: 32px;
+      }
+    }
+  }
 }
 </style>
