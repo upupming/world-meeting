@@ -53,7 +53,7 @@ const updateAudioDevice = (deviceId: string) => {
         {{ device.label }}
         <input
           type="radio"
-          :checked="selectedAudioDeviceId === device.deviceId"
+          :data-checked="selectedAudioDeviceId === device.deviceId"
           @change="updateAudioDevice(device.deviceId)"
           name="radio"
         />
