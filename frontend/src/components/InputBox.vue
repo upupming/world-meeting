@@ -7,6 +7,7 @@ export interface Props {
 const emit = defineEmits<{
   (e: "send:file", file: File): void;
   (e: "send:message", message: string): void;
+  (e: "update:modelValue", message: string): void;
 }>();
 
 const props = defineProps<Props>();

@@ -3843,7 +3843,7 @@ comma-separated-tokens@^1.0.0:
   resolved "https://registry.nlark.com/comma-separated-tokens/download/comma-separated-tokens-1.0.8.tgz?cache=0&sync_timestamp=1619456046501&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fcomma-separated-tokens%2Fdownload%2Fcomma-separated-tokens-1.0.8.tgz#632b80b6117867a158f1080ad498b2fbe7e3f5ea"
   integrity sha1-YyuAthF4Z6FY8QgK1Jiy++fj9eo=
 
-commander@^2.20.0:
+commander@^2.17.1, commander@^2.20.0:
   version "2.20.3"
   resolved "https://registry.nlark.com/commander/download/commander-2.20.3.tgz?cache=0&sync_timestamp=1627358314526&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fcommander%2Fdownload%2Fcommander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
   integrity sha1-/UhehMA+tIgcIHIrpIA16FMa6zM=
@@ -6627,6 +6627,13 @@ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.4.0:
   integrity sha1-ce5R+nvkyuwaY4OffmgtgTLTDK8=
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
+
+lorem-ipsum@2.0.3:
+  version "2.0.3"
+  resolved "https://registry.nlark.com/lorem-ipsum/download/lorem-ipsum-2.0.3.tgz#9f1fa634780c9f58a349d4e091c3ba74f733164e"
+  integrity sha1-nx+mNHgMn1ijSdTgkcO6dPczFk4=
+  dependencies:
+    commander "^2.17.1"
 
 lower-case@^2.0.2:
   version "2.0.2"

@@ -7,3 +7,4 @@ dist-ssr
 build
 .env
 yarn-error.log
+access.log

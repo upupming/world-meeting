@@ -17,7 +17,9 @@ const emit = defineEmits<{
     <div
       class="participant-card-avatar"
       :style="{
-        backgroundImage: `url(${avatarURL})`,
+        backgroundImage: `url(${
+          avatarURL || 'https://avatars.githubusercontent.com/u/24741764?v=4'
+        })`,
       }"
     ></div>
     <div class="participant-card-name">{{ username }}</div>

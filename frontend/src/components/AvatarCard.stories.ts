@@ -24,7 +24,7 @@ const Template: Story<AvatarCardProps> = (args) => ({
       console.log(stream.value);
     });
     console.log("args", args);
-    const muted = ref(args.modelValue);
+    const muted = ref(false);
     return { args, stream, muted };
   },
   // And then the `args` are bound to your component with `v-bind="args"`
@@ -35,5 +35,4 @@ export const AvatarCardEx1 = Template.bind({});
 AvatarCardEx1.args = {
   avatarURL: "https://avatars.githubusercontent.com/u/24741764?v=4",
   username: "Yiming Li",
-  modelValue: false,
 };
