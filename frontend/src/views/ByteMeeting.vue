@@ -75,22 +75,47 @@ const sendFile = (file: File) => {
 const onToggleScreenStream = async () => {
   if (user.screenSharing) {
     user.screenSharing = false;
-    // 屏幕贡献的只是视频，音频不管
-    screenStream.getVideoTracks().forEach((track) => {
+    // 移除之前的屏幕共享 track
+    screenTracks.value.forEach((track) => {
+      peerConnections.forEach((peerConnection) => {
+        peerConnection.removeTrack(trackId2Sender.get(track.id)!);
+        trackId2Sender.delete(track.id);
+      });
       screenStream.removeTrack(track);
     });
   } else {
     user.screenSharing = true;
-    (
-      (await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true,
-      })) as MediaStream
-    )
-      .getVideoTracks()
-      .forEach((track) => {
-        screenStream.addTrack(track);
+    // 屏幕贡献的只是视频，音频不管
+    const screenStreamTmp = (await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false,
+    })) as MediaStream;
+    screenTracks.value = screenStreamTmp.getVideoTracks();
+    screenTracks.value.forEach((track) => {
+      screenStream.addTrack(track);
+    });
+    peerConnections.forEach(async (peerConnection, remoteUsername) => {
+      videoTracks.value.forEach((track) => {
+        console.log("onToggleScreenStream add track", peerConnection, track);
+        trackId2Sender.set(track.id, peerConnection.addTrack(track));
       });
+      // 需要重新进行 offer-answer 过程
+      const offer = await peerConnection.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+      });
+      await peerConnection.setLocalDescription(offer);
+      console.log("created offer", offer);
+
+      socket.value?.emit("createOffer", {
+        from: user.username,
+        to: remoteUsername,
+        offer: {
+          type: offer.type,
+          sdp: offer.sdp,
+        },
+      });
+    });
   }
 };
 
@@ -224,11 +249,23 @@ const listenForTracks = (
     if (!remoteStreams.has(remoteUser)) {
       remoteStreams.set(remoteUser, ref(new MediaStream()));
     }
+    const remoteStream = remoteStreams.get(remoteUser)!.value;
     console.log(
       `Add a track from ${remoteUser} to the remoteStream:`,
+      remoteStream,
       event.track
     );
-    remoteStreams.get(remoteUser)?.value.addTrack(event.track);
+    // 流的话
+    event.track.onended = () => {
+      console.log("track ended", event.track);
+      remoteStream.removeTrack(event.track);
+    };
+    // 对方主动调用了 removeTrack
+    event.track.onmute = () => {
+      console.log("track muted", event.track);
+      remoteStream.removeTrack(event.track);
+    };
+    remoteStream.addTrack(event.track);
   });
 };
 
@@ -413,6 +450,14 @@ const onStartCall = async () => {
   socket.value.on("new-message", (message) => {
     messages.value.push(message);
   });
+  socket.value.on("update-user", (updatedUser) => {
+    console.log("update-user", updatedUser);
+    for (let i = 0; i < remoteUsers.value.length; i++) {
+      if (remoteUsers.value[i].username === updatedUser.username) {
+        remoteUsers.value[i] = updatedUser;
+      }
+    }
+  });
 
   // 将 username 和 roomId 附在 socket 上之后再 connect
   socket.value.auth = user;
@@ -444,6 +489,7 @@ const onStartCall = async () => {
               :muted="user.audioMuted"
               @update:muted="updateAudioMuted"
               :src-object="user.screenSharing ? screenStream : stream"
+              :is-me="true"
             />
             <AvatarCard
               v-for="user in remoteUsers"

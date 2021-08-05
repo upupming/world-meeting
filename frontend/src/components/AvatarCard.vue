@@ -4,6 +4,7 @@ export interface AvatarCardProps {
   username: string;
   muted: boolean;
   srcObject?: MediaProvider;
+  isMe?: boolean;
 }
 const props = defineProps<AvatarCardProps>();
 const emit = defineEmits<{
@@ -33,7 +34,7 @@ const micUnmute = () => {
       class="avatar-card-video"
       playsinline
       autoplay
-      :muted="muted"
+      :muted="isMe ? true : muted"
     ></video>
     <div class="avatar-card-username">
       <div class="avatar-card-username-text">{{ username }}</div>
