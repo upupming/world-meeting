@@ -41,7 +41,6 @@ const connecting = ref(false);
 const peerConnections = new Map<string, RTCPeerConnection>();
 const remoteStreams = reactive(new Map<string, Ref<MediaStream>>());
 const socket: Ref<null | Socket> = ref(null);
-const trackId2Sender = new Map<string, RTCRtpSender>();
 
 const remoteUsers: Ref<User[]> = ref([]);
 
@@ -78,8 +77,17 @@ const onToggleScreenStream = async () => {
     // 移除之前的屏幕共享 track
     screenTracks.value.forEach((track) => {
       peerConnections.forEach((peerConnection) => {
-        peerConnection.removeTrack(trackId2Sender.get(track.id)!);
-        trackId2Sender.delete(track.id);
+        const sender4Track = peerConnection
+          .getSenders()
+          .find((sender) => sender.track?.id === track.id);
+        console.log(
+          "remove screen track from peerConnection",
+          sender4Track,
+          peerConnection
+        );
+        if (sender4Track) {
+          peerConnection.removeTrack(sender4Track);
+        }
       });
       screenStream.removeTrack(track);
     });
@@ -97,7 +105,7 @@ const onToggleScreenStream = async () => {
     peerConnections.forEach(async (peerConnection, remoteUsername) => {
       screenTracks.value.forEach((track) => {
         console.log("onToggleScreenStream add track", peerConnection, track);
-        trackId2Sender.set(track.id, peerConnection.addTrack(track));
+        peerConnection.addTrack(track);
       });
       // 需要重新进行 offer-answer 过程
       const offer = await peerConnection.createOffer({
@@ -146,8 +154,17 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
     // 移除之前的视频 track
     videoTracks.value.forEach((track) => {
       peerConnections.forEach((peerConnection) => {
-        peerConnection.removeTrack(trackId2Sender.get(track.id)!);
-        trackId2Sender.delete(track.id);
+        const sender4Track = peerConnection
+          .getSenders()
+          .find((sender) => sender.track?.id === track.id);
+        console.log(
+          "remove video track from peerConnection",
+          sender4Track,
+          peerConnection
+        );
+        if (sender4Track) {
+          peerConnection.removeTrack(sender4Track);
+        }
       });
       stream.removeTrack(track);
     });
@@ -165,7 +182,7 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
     peerConnections.forEach(async (peerConnection, remoteUsername) => {
       videoTracks.value.forEach((track) => {
         console.log("updateVideoMuted add track", peerConnection, track);
-        trackId2Sender.set(track.id, peerConnection.addTrack(track));
+        peerConnection.addTrack(track);
       });
       // 需要重新进行 offer-answer 过程
       const offer = await peerConnection.createOffer({
@@ -194,8 +211,17 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
     // 移除之前的音频 track
     audioTracks.value.forEach((track) => {
       peerConnections.forEach((peerConnection) => {
-        peerConnection.removeTrack(trackId2Sender.get(track.id)!);
-        trackId2Sender.delete(track.id);
+        const sender4Track = peerConnection
+          .getSenders()
+          .find((sender) => sender.track?.id === track.id);
+        console.log(
+          "remove audio track from peerConnection",
+          sender4Track,
+          peerConnection
+        );
+        if (sender4Track) {
+          peerConnection.removeTrack(sender4Track);
+        }
       });
       stream.removeTrack(track);
     });
@@ -209,7 +235,7 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
     audioTracks.value = audioStream.getAudioTracks();
     audioTracks.value.forEach((track) => {
       peerConnections.forEach((peerConnection) => {
-        trackId2Sender.set(track.id, peerConnection.addTrack(track));
+        peerConnection.addTrack(track);
       });
       stream.addTrack(track);
     });
@@ -294,15 +320,15 @@ const connectPeerWithNewOffer = async (socket: Socket, remoteUser: User) => {
 
   videoTracks.value.forEach((track) => {
     console.log("offer track", track);
-    trackId2Sender.set(track.id, peerConnection.addTrack(track));
+    peerConnection.addTrack(track);
   });
   audioTracks.value.forEach((track) => {
     console.log("offer track", track);
-    trackId2Sender.set(track.id, peerConnection.addTrack(track));
+    peerConnection.addTrack(track);
   });
   screenTracks.value.forEach((track) => {
     console.log("offer track", track);
-    trackId2Sender.set(track.id, peerConnection.addTrack(track));
+    peerConnection.addTrack(track);
   });
 
   collectIceCandidates(socket, peerConnection);
@@ -408,15 +434,15 @@ const onStartCall = async () => {
 
     videoTracks.value.forEach((track) => {
       console.log("answer track", track, Date.now());
-      trackId2Sender.set(track.id, peerConnection.addTrack(track));
+      peerConnection.addTrack(track);
     });
     audioTracks.value.forEach((track) => {
       console.log("answer track", track, Date.now());
-      trackId2Sender.set(track.id, peerConnection.addTrack(track));
+      peerConnection.addTrack(track);
     });
     screenTracks.value.forEach((track) => {
       console.log("answer track", track, Date.now());
-      trackId2Sender.set(track.id, peerConnection.addTrack(track));
+      peerConnection.addTrack(track);
     });
 
     const answer = await peerConnection.createAnswer({
@@ -456,6 +482,20 @@ const onStartCall = async () => {
         remoteUsers.value[i] = updatedUser;
       }
     }
+  });
+  socket.value.on("delete-user", (deletedUsername) => {
+    console.log("delete-user", deletedUsername);
+    const remoteUserIndex = remoteUsers.value.findIndex(
+      (remoteUser) => remoteUser.username
+    );
+    if (remoteUserIndex !== -1) {
+      remoteUsers.value.splice(remoteUserIndex, 1);
+    }
+    if (peerConnections.has(deletedUsername)) {
+      peerConnections.get(deletedUsername)!.close();
+      peerConnections.delete(deletedUsername);
+    }
+    remoteStreams.delete(deletedUsername);
   });
 
   // 将 username 和 roomId 附在 socket 上之后再 connect
