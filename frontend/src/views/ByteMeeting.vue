@@ -52,12 +52,30 @@ const user = reactive({
   audioMuted: true,
   screenSharing: false,
 });
-interface Message {
+interface TextMessage {
   from: string;
-  message: string;
+  message?: string;
+}
+interface FileMessage {
+  from: string;
+  /* 文件 uint8array 内容 */
+  fileContent?: string;
+  filename?: string;
+  fileUrl?: string;
 }
 
-const messages: Ref<Message[]> = ref([]);
+const messages: Ref<(TextMessage & FileMessage)[]> = ref([
+  // {
+  //   from: "test",
+  //   message: "Hello world",
+  // },
+  // {
+  //   from: "test1",
+  //   fileContent: "Hellowef jerhgfj r",
+  //   filename: "a.txt",
+  //   fileUrl: window.URL.createObjectURL(new Blob(["Hellowef jerhgfj r"])),
+  // },
+]);
 
 const sendMessage = (message: string) => {
   console.log("sendMessage", message);
@@ -67,6 +85,13 @@ const sendMessage = (message: string) => {
 };
 const sendFile = (file: File) => {
   console.log("sendFile", file);
+  if (socket.value) {
+    socket.value.emit("sendFile", {
+      data: file,
+      filename: file.name,
+      type: file.type,
+    });
+  }
 };
 
 // TODO: 支持 remove track
@@ -475,6 +500,15 @@ const onStartCall = async () => {
   socket.value.on("new-message", (message) => {
     messages.value.push(message);
   });
+  socket.value.on("new-file", ({ fileContent, filename, from, type }) => {
+    console.log("new file", fileContent, filename, from, type);
+    messages.value.push({
+      fileContent,
+      filename,
+      from,
+      fileUrl: window.URL.createObjectURL(new Blob([fileContent], { type })),
+    });
+  });
   socket.value.on("update-user", (updatedUser) => {
     console.log("update-user", updatedUser);
     for (let i = 0; i < remoteUsers.value.length; i++) {
@@ -600,7 +634,7 @@ const onStartCall = async () => {
           <div class="byte-meeting-chat-messages">
             <div
               v-for="message in messages"
-              :key="message.message"
+              :key="JSON.stringify(message)"
               :class="{
                 'byte-meeting-chat-message': true,
                 me: message.from === user.username,
@@ -608,7 +642,17 @@ const onStartCall = async () => {
             >
               <span class="byte-meeting-chat-from">{{ message.from }}</span>
               <br />
-              <span class="byte-meeting-chat-text">{{ message.message }}</span>
+              <span v-if="message.message" class="byte-meeting-chat-text">{{
+                message.message
+              }}</span>
+              <a
+                v-if="message.fileContent"
+                :href="message.fileUrl"
+                :download="message.filename"
+                class="byte-meeting-chat-text"
+              >
+                {{ message.filename }}
+              </a>
             </div>
           </div>
         </div>
@@ -758,25 +802,23 @@ const onStartCall = async () => {
       position: relative;
       margin: 12px 12px 0 12px;
       padding-bottom: 24px;
-      span {
-        position: absolute;
-      }
       .byte-meeting-chat-from {
         left: 0;
+        position: absolute;
       }
       .byte-meeting-chat-text {
         padding-top: 12px;
         left: 12px;
+        position: absolute;
       }
       &.me {
-        span {
-          text-align: right;
-        }
         .byte-meeting-chat-from {
           right: 0;
+          text-align: right;
         }
         .byte-meeting-chat-text {
           right: 12px;
+          text-align: right;
         }
       }
     }

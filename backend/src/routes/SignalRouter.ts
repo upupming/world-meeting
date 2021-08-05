@@ -17,7 +17,10 @@ const usersInRoom = new Map<string, Set<User>>();
 
 export const signalServerInit = (server: http.Server): void => {
   console.log("signalServerInit");
-  const io = new Server(server).of("/signal");
+  // https://github.com/socketio/socket.io/issues/3946#issuecomment-850704139
+  const io = new Server(server, {
+    maxHttpBufferSize: 1e8,
+  }).of("/signal");
   io.on("connection", async (socket) => {
     console.log(socket);
     // 将这个用户加入到内存数据中
@@ -38,8 +41,8 @@ export const signalServerInit = (server: http.Server): void => {
     socket.to(user.roomId).emit("add-user", user);
 
     // notify users upon disconnection
-    socket.on("disconnect", async () => {
-      console.log("disconnect");
+    socket.on("disconnect", async (reason) => {
+      console.log(socket, "disconnected with reason", reason);
       // 通知用户删除这个 user
       if (users.has(user.username)) {
         users.delete(user.username);
@@ -85,6 +88,16 @@ export const signalServerInit = (server: http.Server): void => {
       io.to(user.roomId).emit("new-message", {
         message,
         from: user.username,
+      });
+    });
+    socket.on("sendFile", (file) => {
+      console.log("sendFile", file);
+      io.to(user.roomId).emit("new-file", {
+        /* file.data 是 unit8array */
+        fileContent: file.data,
+        filename: file.filename,
+        from: user.username,
+        type: file.type
       });
     });
   });
