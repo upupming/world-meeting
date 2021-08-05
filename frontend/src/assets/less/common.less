@@ -90,7 +90,7 @@ body {
 }
 
 /* When the radio button is checked, add a blue background */
-.container input:checked ~ .checkmark {
+.container input[data-checked*="true"] ~ .checkmark {
   background-color: @green;
 }
 
@@ -102,7 +102,7 @@ body {
 }
 
 /* Show the indicator (dot/circle) when checked */
-.container input:checked ~ .checkmark:after {
+.container input[data-checked*="true"] ~ .checkmark:after {
   display: block;
 }
 
