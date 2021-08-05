@@ -820,6 +820,12 @@ const onStartCall = async () => {
           right: 12px;
           text-align: right;
         }
+        .byte-meeting-chat-from {
+          right: 0;
+        }
+        .byte-meeting-chat-text {
+          right: 12px;
+        }
       }
     }
     &-from {
