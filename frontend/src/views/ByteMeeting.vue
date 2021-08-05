@@ -46,8 +46,8 @@ const trackId2Sender = new Map<string, RTCRtpSender>();
 const remoteUsers: Ref<User[]> = ref([]);
 
 const user = reactive({
-  username: "",
-  roomId: "",
+  username: lorem.generateWords(1),
+  roomId: lorem.generateWords(1),
   avatarURL: "",
   videoMuted: true,
   audioMuted: true,
@@ -95,7 +95,7 @@ const onToggleScreenStream = async () => {
       screenStream.addTrack(track);
     });
     peerConnections.forEach(async (peerConnection, remoteUsername) => {
-      videoTracks.value.forEach((track) => {
+      screenTracks.value.forEach((track) => {
         console.log("onToggleScreenStream add track", peerConnection, track);
         trackId2Sender.set(track.id, peerConnection.addTrack(track));
       });
@@ -230,7 +230,6 @@ const handleUserInfoDialogCancel = () => {
 };
 const handleUserInfoDialogConfirm = () => {
   userInfoDialogVisible.value = false;
-  onStartCall();
 };
 
 // 当用户自主对音视频状态发生改变时，通知一下远端
@@ -471,6 +470,9 @@ const onStartCall = async () => {
   <div class="byte-meeting-main">
     <div class="byte-meeting-header">
       <div class="byte-meeting-title">Byte Meeting</div>
+      <div class="byte-meeting-user-icon" @click="userInfoDialogVisible = true">
+        <i class="fas fa-user"></i>
+      </div>
       <div class="byte-meeting-username">
         用户名: {{ user.username || "暂无" }}
       </div>
@@ -635,8 +637,14 @@ const onStartCall = async () => {
     padding-left: 12px;
     font-size: 32px;
   }
-  &-username {
+  &-user-icon {
     padding-left: 124px;
+    padding-top: 6px;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  &-username {
+    padding-left: 32px;
     font-size: 24px;
   }
   &-roomId {
@@ -709,10 +717,26 @@ const onStartCall = async () => {
     &-message {
       position: relative;
       margin: 12px 12px 0 12px;
+      padding-bottom: 24px;
+      span {
+        position: absolute;
+      }
+      .byte-meeting-chat-from {
+        left: 0;
+      }
+      .byte-meeting-chat-text {
+        padding-top: 12px;
+        left: 12px;
+      }
       &.me {
         span {
-          float: right;
           text-align: right;
+        }
+        .byte-meeting-chat-from {
+          right: 0;
+        }
+        .byte-meeting-chat-text {
+          right: 12px;
         }
       }
     }
