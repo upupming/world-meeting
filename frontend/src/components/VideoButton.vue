@@ -76,6 +76,9 @@ const updateVideoDevice = (deviceId: string) => {
   }
   &.muted {
     background-color: @red;
+    &:hover {
+      background-color: lighten(@red, 20%);
+    }
   }
 
   &-status {

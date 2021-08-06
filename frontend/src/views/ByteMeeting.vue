@@ -94,8 +94,6 @@ const sendFile = (file: File) => {
   }
 };
 
-// TODO: 支持 remove track
-
 const onToggleScreenStream = async () => {
   if (user.screenSharing) {
     user.screenSharing = false;
@@ -259,10 +257,29 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
     });
     audioTracks.value = audioStream.getAudioTracks();
     audioTracks.value.forEach((track) => {
-      peerConnections.forEach((peerConnection) => {
+      stream.addTrack(track);
+    });
+    peerConnections.forEach(async (peerConnection, remoteUsername) => {
+      audioTracks.value.forEach((track) => {
+        console.log("updateAudioMuted add track", peerConnection, track);
         peerConnection.addTrack(track);
       });
-      stream.addTrack(track);
+      // 需要重新进行 offer-answer 过程
+      const offer = await peerConnection.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+      });
+      await peerConnection.setLocalDescription(offer);
+      console.log("created offer", offer);
+
+      socket.value?.emit("createOffer", {
+        from: user.username,
+        to: remoteUsername,
+        offer: {
+          type: offer.type,
+          sdp: offer.sdp,
+        },
+      });
     });
   }
 };
@@ -379,7 +396,14 @@ const connectPeerWithNewOffer = async (socket: Socket, remoteUser: User) => {
   });
 };
 
-const onStartCall = async () => {
+const onToggleCall = async () => {
+  if (socket.value) {
+    console.log("断开连接");
+    socket.value.disconnect();
+    socket.value = null;
+    return;
+  }
+
   if (
     videoTracks.value.length === 0 &&
     audioTracks.value.length === 0 &&
@@ -405,6 +429,11 @@ const onStartCall = async () => {
   socket.value.on("disconnect", () => {
     console.log("client disconnect");
     peerConnections.forEach((pc) => pc.close());
+    peerConnections.clear();
+    messages.value = [];
+    connecting.value = false;
+    remoteStreams.clear();
+    remoteUsers.value = [];
   });
   // 新加入房间的用户负责给之前所有的人都发一个 offer
   socket.value.on("retrieve-users", (receivedUsers: User[]) => {
@@ -544,13 +573,25 @@ const onStartCall = async () => {
   <div class="byte-meeting-main">
     <div class="byte-meeting-header">
       <div class="byte-meeting-title">Byte Meeting</div>
-      <div class="byte-meeting-user-icon" @click="userInfoDialogVisible = true">
-        <i class="fas fa-user"></i>
+      <div class="byte-meeting-userinfo">
+        <div class="byte-meeting-userinfo-container">
+          <div class="byte-meeting-username">
+            用户名: {{ user.username || "暂无" }}
+          </div>
+          <div class="byte-meeting-roomId">
+            房间号: {{ user.roomId || "暂无" }}
+          </div>
+          <div
+            :class="{
+              'byte-meeting-user-icon': true,
+              connected: socket,
+            }"
+            @click="!socket && (userInfoDialogVisible = true)"
+          >
+            <i class="fas fa-user"></i>
+          </div>
+        </div>
       </div>
-      <div class="byte-meeting-username">
-        用户名: {{ user.username || "暂无" }}
-      </div>
-      <div class="byte-meeting-roomId">房间号: {{ user.roomId || "暂无" }}</div>
     </div>
     <div class="byte-meeting-content">
       <div class="byte-meeting-center">
@@ -610,7 +651,7 @@ const onStartCall = async () => {
                 muted: !socket,
                 connecting,
               }"
-              @click="onStartCall"
+              @click="onToggleCall"
             >
               <i class="fas fa-phone"></i>
             </div>
@@ -721,11 +762,33 @@ const onStartCall = async () => {
     padding-left: 12px;
     font-size: 32px;
   }
+  &-userinfo {
+    height: 100%;
+    flex-grow: 1;
+    position: relative;
+    &-container {
+      position: absolute;
+      right: 96px;
+      display: flex;
+      align-items: center;
+      top: 0;
+      bottom: 0;
+    }
+  }
   &-user-icon {
-    padding-left: 124px;
+    padding-left: 32px;
     padding-top: 6px;
     font-size: 24px;
     cursor: pointer;
+    &:hover {
+      color: fade(@foreground, 50%);
+    }
+    &.connected {
+      color: @green;
+      &:hover {
+        cursor: not-allowed;
+      }
+    }
   }
   &-username {
     padding-left: 32px;
@@ -853,6 +916,9 @@ const onStartCall = async () => {
     }
     &.muted {
       background-color: @red;
+      &:hover {
+        background-color: lighten(@red, 20%);
+      }
     }
     &.connecting {
       background-color: fade(@red, 30%);
