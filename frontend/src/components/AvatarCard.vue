@@ -39,7 +39,10 @@ const toggleFullScreen = () => {
     ref="avatarCard"
     :style="{
       backgroundImage: `url(${
-        avatarURL || 'https://avatars.githubusercontent.com/u/24741764?v=4'
+        avatarURL ||
+        `https://ui-avatars.com/api/?size=960&name=${encodeURI(
+          username
+        )}&background=ffb86c&color=f8f8f2`
       })`,
     }"
     @click="toggleFullScreen"
