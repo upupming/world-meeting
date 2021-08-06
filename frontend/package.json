@@ -4,7 +4,7 @@
   "description": "World Meeting Web App implemented using WebRTC",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vite build",
     "watch": "vite build --watch",
     "serve": "vite preview",
     "storybook": "start-storybook -p 6006",

@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "build:frontend": "cd frontend && yarn && yarn build",
-    "build:backend": "cd backend && yarn && yarn build",
+    "build:backend": "cd backend && yarn",
     "postinstall": "yarn build:frontend && yarn build:backend",
     "start": "cd backend && yarn start"
   },

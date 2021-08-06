@@ -120,6 +120,7 @@ const removeTracks = (
 ) => {
   tracksToBeRemoved.value.forEach((track) => {
     removeTrack(track, streamOfTracks);
+    track.onended = track.onmute = track.onunmute = null;
   });
   tracksToBeRemoved.value = [];
 };
