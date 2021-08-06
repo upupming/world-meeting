@@ -120,9 +120,9 @@
 
 <script setup lang="ts">
 import VideoBlock from "../components/VideoBlock.vue";
-import khPhoto from "../assets/img/kh.png";
-import lymPhoto from "../assets/img/lym.png";
-import crPhoto from "../assets/img/cr.png";
+const khPhoto = "/logo/logo.png";
+const lymPhoto = "/logo/logo.png";
+const crPhoto = "/logo/logo.png";
 
 const useMicrophone = true;
 const useCamera = true;
