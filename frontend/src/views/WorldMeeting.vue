@@ -309,12 +309,12 @@ const listenForTracks = (
       remoteStream.removeTrack(event.track);
       remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
     };
-    // 对方主动调用了 removeTrack
-    event.track.onmute = () => {
-      console.log("track muted", event.track);
-      remoteStream.removeTrack(event.track);
-      remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
-    };
+    // // 对方主动调用了 removeTrack
+    // event.track.onmute = () => {
+    //   console.log("track muted", event.track);
+    //   remoteStream.removeTrack(event.track);
+    //   remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+    // };
     event.track.onunmute = () => {
       console.log("track unmuted", event.track);
       remoteStream.addTrack(event.track);
