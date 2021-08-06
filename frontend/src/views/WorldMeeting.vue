@@ -170,6 +170,7 @@ const onToggleScreenStream = async () => {
         removeTrack(track, screenStream.value);
         screenStream.value = new MediaStream(screenStream.value);
         user.screenSharing = false;
+        track.onended = track.onmute = track.onunmute = null;
       };
     });
     upgradeRTCWithNewTracks(screenTracks);
@@ -307,7 +308,10 @@ const listenForTracks = (
     event.track.onended = () => {
       console.log("track ended", event.track);
       remoteStream.removeTrack(event.track);
-      remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+      if (remoteStreams.get(remoteUser)) {
+        remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+      }
+      event.track.onended = event.track.onmute = event.track.onunmute = null;
     };
     // 对方主动调用了 removeTrack
     let mutedTimeout: NodeJS.Timeout | undefined = undefined;
@@ -317,7 +321,9 @@ const listenForTracks = (
       if (mutedTimeout) return;
       mutedTimeout = setTimeout(() => {
         remoteStream.removeTrack(event.track);
-        remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+        if (remoteStreams.get(remoteUser)) {
+          remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+        }
       }, 1000);
     };
     event.track.onunmute = () => {
@@ -327,7 +333,9 @@ const listenForTracks = (
         clearTimeout(mutedTimeout);
       } else {
         remoteStream.addTrack(event.track);
-        remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+        if (remoteStreams.get(remoteUser)) {
+          remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+        }
       }
     };
     remoteStream.addTrack(event.track);
