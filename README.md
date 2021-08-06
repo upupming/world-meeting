@@ -1,6 +1,6 @@
 # WorldMeeting
 
-A multi-user real-time audio and video communication application based on WebRTC. See the demo at: https://world-meeting.vercel.app
+A multi-user real-time audio and video communication application based on WebRTC. See the demo at: https://world-meeting.herokuapp.com
 
 ![world-meeting](img/world-meeting.png)
 
