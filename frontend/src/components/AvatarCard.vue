@@ -70,6 +70,7 @@ const micUnmute = () => {
   &-video {
     width: 100%;
     height: 100%;
+    border-radius: 30px;
     position: absolute;
     left: 0;
     right: 0;

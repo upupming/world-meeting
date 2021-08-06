@@ -97,7 +97,7 @@ export const signalServerInit = (server: http.Server): void => {
         fileContent: file.data,
         filename: file.filename,
         from: user.username,
-        type: file.type
+        type: file.type,
       });
     });
   });
