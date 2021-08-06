@@ -245,12 +245,32 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
   }
 };
 const updateVideoDevice = (updatedVideoDevice: string) => {
-  console.log("update:videoDevice", updatedVideoDevice);
-  selectedVideoDeviceId.value = updatedVideoDevice;
+  if (updatedVideoDevice !== selectedVideoDeviceId.value) {
+    console.log(
+      "update:videoDevice",
+      "before",
+      selectedVideoDeviceId.value,
+      "now",
+      updatedVideoDevice
+    );
+    updateVideoMuted(true);
+    selectedVideoDeviceId.value = updatedVideoDevice;
+    updateVideoMuted(false);
+  }
 };
 const updateAudioDevice = (updatedAudioDevice: string) => {
-  console.log("update:audioDevice", updatedAudioDevice);
-  selectedAudioDeviceId.value = updatedAudioDevice;
+  if (updatedAudioDevice !== selectedAudioDeviceId.value) {
+    console.log(
+      "update:audioDevice",
+      "before",
+      selectedAudioDeviceId.value,
+      "now",
+      updatedAudioDevice
+    );
+    updateAudioMuted(true);
+    selectedAudioDeviceId.value = updatedAudioDevice;
+    updateAudioMuted(false);
+  }
 };
 
 const userInfoDialogVisible = ref(false);
