@@ -30,8 +30,8 @@ const audioDevices: Ref<MediaDeviceInfo[]> = ref([]);
 const selectedVideoDeviceId = ref("");
 const selectedAudioDeviceId = ref("");
 
-const stream = new MediaStream();
-const screenStream = new MediaStream();
+const stream = ref(new MediaStream());
+const screenStream = ref(new MediaStream());
 
 const videoTracks: Ref<MediaStreamTrack[]> = ref([]);
 const audioTracks: Ref<MediaStreamTrack[]> = ref([]);
@@ -45,7 +45,7 @@ const socket: Ref<null | Socket> = ref(null);
 const remoteUsers: Ref<User[]> = ref([]);
 
 const user = reactive({
-  username: lorem.generateWords(1),
+  username: lorem.generateWords(2),
   roomId: lorem.generateWords(1),
   avatarURL: "",
   videoMuted: true,
@@ -94,28 +94,66 @@ const sendFile = (file: File) => {
   }
 };
 
-// TODO: 支持 remove track
+const removeTrack = (
+  trackToBeRemoved: MediaStreamTrack,
+  streamOfTracks: MediaStream
+) => {
+  peerConnections.forEach((peerConnection) => {
+    const sender4Track = peerConnection
+      .getSenders()
+      .find((sender) => sender.track?.id === trackToBeRemoved.id);
+    console.log(
+      "remove track from peerConnection",
+      sender4Track,
+      peerConnection
+    );
+    if (sender4Track) {
+      peerConnection.removeTrack(sender4Track);
+    }
+  });
+  streamOfTracks.removeTrack(trackToBeRemoved);
+};
+
+const removeTracks = (
+  tracksToBeRemoved: Ref<MediaStreamTrack[]>,
+  streamOfTracks: MediaStream
+) => {
+  tracksToBeRemoved.value.forEach((track) => {
+    removeTrack(track, streamOfTracks);
+  });
+  tracksToBeRemoved.value = [];
+};
+
+// See the upgrade demo: https://github.com/webrtc/samples/blob/6ee1b909e4a04a8f5f02283e70cbadb8e73742b1/src/content/peerconnection/upgrade/js/main.js#L178
+const upgradeRTCWithNewTracks = (tracksToBeAdded: Ref<MediaStreamTrack[]>) => {
+  peerConnections.forEach(async (peerConnection, remoteUsername) => {
+    tracksToBeAdded.value.forEach((track) => {
+      peerConnection.addTrack(track);
+    });
+    // 需要重新进行 offer-answer 过程
+    const offer = await peerConnection.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+    });
+    await peerConnection.setLocalDescription(offer);
+    console.log("created offer", offer);
+
+    socket.value?.emit("createOffer", {
+      from: user.username,
+      to: remoteUsername,
+      offer: {
+        type: offer.type,
+        sdp: offer.sdp,
+      },
+    });
+  });
+};
 
 const onToggleScreenStream = async () => {
   if (user.screenSharing) {
     user.screenSharing = false;
     // 移除之前的屏幕共享 track
-    screenTracks.value.forEach((track) => {
-      peerConnections.forEach((peerConnection) => {
-        const sender4Track = peerConnection
-          .getSenders()
-          .find((sender) => sender.track?.id === track.id);
-        console.log(
-          "remove screen track from peerConnection",
-          sender4Track,
-          peerConnection
-        );
-        if (sender4Track) {
-          peerConnection.removeTrack(sender4Track);
-        }
-      });
-      screenStream.removeTrack(track);
-    });
+    removeTracks(screenTracks, screenStream.value);
   } else {
     user.screenSharing = true;
     // 屏幕贡献的只是视频，音频不管
@@ -125,44 +163,37 @@ const onToggleScreenStream = async () => {
     })) as MediaStream;
     screenTracks.value = screenStreamTmp.getVideoTracks();
     screenTracks.value.forEach((track) => {
-      screenStream.addTrack(track);
+      screenStream.value.addTrack(track);
+      // 停止共享的话
+      track.onended = () => {
+        console.log("screenStream track ended", track);
+        removeTrack(track, screenStream.value);
+        screenStream.value = new MediaStream(screenStream.value);
+        user.screenSharing = false;
+        track.onended = track.onmute = track.onunmute = null;
+      };
     });
-    peerConnections.forEach(async (peerConnection, remoteUsername) => {
-      screenTracks.value.forEach((track) => {
-        console.log("onToggleScreenStream add track", peerConnection, track);
-        peerConnection.addTrack(track);
-      });
-      // 需要重新进行 offer-answer 过程
-      const offer = await peerConnection.createOffer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
-      });
-      await peerConnection.setLocalDescription(offer);
-      console.log("created offer", offer);
-
-      socket.value?.emit("createOffer", {
-        from: user.username,
-        to: remoteUsername,
-        offer: {
-          type: offer.type,
-          sdp: offer.sdp,
-        },
-      });
-    });
+    upgradeRTCWithNewTracks(screenTracks);
   }
 };
 
 onMounted(async () => {
   console.log("mounted");
-  // 只是为了获取权限，使得 enumerateDevices 能够正常运行
-  (
-    await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
-    })
-  )
-    .getTracks()
-    .forEach((track) => track.stop());
+  try {
+    // 只是为了获取权限，使得 enumerateDevices 能够正常运行
+    (
+      await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      })
+    )
+      .getTracks()
+      .forEach((track) => track.stop());
+  } catch (err) {
+    ElMessage(`获取音视频失败，可能无法进行后续操作: ${JSON.stringify(err)}`);
+    console.error(err);
+    return;
+  }
 
   const devices = await navigator.mediaDevices.enumerateDevices();
   videoDevices.value = devices.filter((device) => device.kind === "videoinput");
@@ -177,23 +208,10 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
   user.videoMuted = updatedMuted;
   if (user.videoMuted) {
     // 移除之前的视频 track
-    videoTracks.value.forEach((track) => {
-      peerConnections.forEach((peerConnection) => {
-        const sender4Track = peerConnection
-          .getSenders()
-          .find((sender) => sender.track?.id === track.id);
-        console.log(
-          "remove video track from peerConnection",
-          sender4Track,
-          peerConnection
-        );
-        if (sender4Track) {
-          peerConnection.removeTrack(sender4Track);
-        }
-      });
-      stream.removeTrack(track);
-    });
-    videoTracks.value = [];
+    removeTracks(videoTracks, stream.value);
+    // 建一个新的 stream，不然的话会出现 video 组件继续显示卡住的图片的情况
+    // 这样重新赋新值的话就让 video 重新不可见了，展示默认的头像元素
+    stream.value = new MediaStream(stream.value);
   } else {
     // 请求视频 track
     const videoStream = await navigator.mediaDevices.getUserMedia({
@@ -202,30 +220,9 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
     });
     videoTracks.value = videoStream.getVideoTracks();
     videoTracks.value.forEach((track) => {
-      stream.addTrack(track);
+      stream.value.addTrack(track);
     });
-    peerConnections.forEach(async (peerConnection, remoteUsername) => {
-      videoTracks.value.forEach((track) => {
-        console.log("updateVideoMuted add track", peerConnection, track);
-        peerConnection.addTrack(track);
-      });
-      // 需要重新进行 offer-answer 过程
-      const offer = await peerConnection.createOffer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
-      });
-      await peerConnection.setLocalDescription(offer);
-      console.log("created offer", offer);
-
-      socket.value?.emit("createOffer", {
-        from: user.username,
-        to: remoteUsername,
-        offer: {
-          type: offer.type,
-          sdp: offer.sdp,
-        },
-      });
-    });
+    upgradeRTCWithNewTracks(videoTracks);
   }
 };
 const updateAudioMuted = async (updatedMuted: boolean) => {
@@ -234,23 +231,7 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
   user.audioMuted = updatedMuted;
   if (user.audioMuted) {
     // 移除之前的音频 track
-    audioTracks.value.forEach((track) => {
-      peerConnections.forEach((peerConnection) => {
-        const sender4Track = peerConnection
-          .getSenders()
-          .find((sender) => sender.track?.id === track.id);
-        console.log(
-          "remove audio track from peerConnection",
-          sender4Track,
-          peerConnection
-        );
-        if (sender4Track) {
-          peerConnection.removeTrack(sender4Track);
-        }
-      });
-      stream.removeTrack(track);
-    });
-    audioTracks.value = [];
+    removeTracks(audioTracks, stream.value);
   } else {
     // 请求音频 track
     const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -259,20 +240,38 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
     });
     audioTracks.value = audioStream.getAudioTracks();
     audioTracks.value.forEach((track) => {
-      peerConnections.forEach((peerConnection) => {
-        peerConnection.addTrack(track);
-      });
-      stream.addTrack(track);
+      stream.value.addTrack(track);
     });
+    upgradeRTCWithNewTracks(audioTracks);
   }
 };
 const updateVideoDevice = (updatedVideoDevice: string) => {
-  console.log("update:videoDevice", updatedVideoDevice);
-  selectedVideoDeviceId.value = updatedVideoDevice;
+  if (updatedVideoDevice !== selectedVideoDeviceId.value) {
+    console.log(
+      "update:videoDevice",
+      "before",
+      selectedVideoDeviceId.value,
+      "now",
+      updatedVideoDevice
+    );
+    updateVideoMuted(true);
+    selectedVideoDeviceId.value = updatedVideoDevice;
+    updateVideoMuted(false);
+  }
 };
 const updateAudioDevice = (updatedAudioDevice: string) => {
-  console.log("update:audioDevice", updatedAudioDevice);
-  selectedAudioDeviceId.value = updatedAudioDevice;
+  if (updatedAudioDevice !== selectedAudioDeviceId.value) {
+    console.log(
+      "update:audioDevice",
+      "before",
+      selectedAudioDeviceId.value,
+      "now",
+      updatedAudioDevice
+    );
+    updateAudioMuted(true);
+    selectedAudioDeviceId.value = updatedAudioDevice;
+    updateAudioMuted(false);
+  }
 };
 
 const userInfoDialogVisible = ref(false);
@@ -305,15 +304,39 @@ const listenForTracks = (
       remoteStream,
       event.track
     );
-    // 流的话
+    // 流终止的话
     event.track.onended = () => {
       console.log("track ended", event.track);
       remoteStream.removeTrack(event.track);
+      if (remoteStreams.get(remoteUser)) {
+        remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+      }
+      event.track.onended = event.track.onmute = event.track.onunmute = null;
     };
     // 对方主动调用了 removeTrack
+    let mutedTimeout: NodeJS.Timeout | undefined = undefined;
     event.track.onmute = () => {
       console.log("track muted", event.track);
-      remoteStream.removeTrack(event.track);
+      // 防止过快地 mute/unmted 交互
+      if (mutedTimeout) return;
+      mutedTimeout = setTimeout(() => {
+        remoteStream.removeTrack(event.track);
+        if (remoteStreams.get(remoteUser)) {
+          remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+        }
+      }, 1000);
+    };
+    event.track.onunmute = () => {
+      console.log("track unmuted", event.track);
+      if (mutedTimeout) {
+        console.log("clear mutedTimeout directly");
+        clearTimeout(mutedTimeout);
+      } else {
+        remoteStream.addTrack(event.track);
+        if (remoteStreams.get(remoteUser)) {
+          remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+        }
+      }
     };
     remoteStream.addTrack(event.track);
   });
@@ -379,7 +402,14 @@ const connectPeerWithNewOffer = async (socket: Socket, remoteUser: User) => {
   });
 };
 
-const onStartCall = async () => {
+const onToggleCall = async () => {
+  if (socket.value) {
+    console.log("断开连接");
+    ElMessage("连接已断开");
+    socket.value.disconnect();
+    return;
+  }
+
   if (
     videoTracks.value.length === 0 &&
     audioTracks.value.length === 0 &&
@@ -405,6 +435,12 @@ const onStartCall = async () => {
   socket.value.on("disconnect", () => {
     console.log("client disconnect");
     peerConnections.forEach((pc) => pc.close());
+    peerConnections.clear();
+    messages.value = [];
+    connecting.value = false;
+    remoteStreams.clear();
+    remoteUsers.value = [];
+    socket.value = null;
   });
   // 新加入房间的用户负责给之前所有的人都发一个 offer
   socket.value.on("retrieve-users", (receivedUsers: User[]) => {
@@ -531,6 +567,13 @@ const onStartCall = async () => {
     }
     remoteStreams.delete(deletedUsername);
   });
+  socket.value.on("dup-username", () => {
+    console.log("dup-username");
+    ElMessage(
+      "Duplicate username, please change your username or join another room"
+    );
+    socket.value?.disconnect();
+  });
 
   // 将 username 和 roomId 附在 socket 上之后再 connect
   socket.value.auth = user;
@@ -541,30 +584,44 @@ const onStartCall = async () => {
 </script>
 
 <template>
-  <div class="byte-meeting-main">
-    <div class="byte-meeting-header">
-      <div class="byte-meeting-title">Byte Meeting</div>
-      <div class="byte-meeting-user-icon" @click="userInfoDialogVisible = true">
-        <i class="fas fa-user"></i>
+  <div class="world-meeting-main">
+    <div class="world-meeting-header">
+      <div class="world-meeting-title">
+        <img
+          class="world-meeting-title-logo"
+          src="/logo/logo_transparent.png"
+        />
       </div>
-      <div class="byte-meeting-username">
-        用户名: {{ user.username || "暂无" }}
+      <div class="world-meeting-userinfo">
+        <div class="world-meeting-userinfo-container">
+          <div class="world-meeting-username">
+            Username: {{ user.username || "暂无" }}
+          </div>
+          <div class="world-meeting-roomId">
+            Room ID: {{ user.roomId || "暂无" }}
+          </div>
+          <div
+            :class="{
+              'world-meeting-user-icon': true,
+              connected: socket,
+            }"
+            @click="!socket && (userInfoDialogVisible = true)"
+          >
+            <i class="fas fa-user"></i>
+          </div>
+        </div>
       </div>
-      <div class="byte-meeting-roomId">房间号: {{ user.roomId || "暂无" }}</div>
     </div>
-    <div class="byte-meeting-content">
-      <div class="byte-meeting-center">
-        <div class="byte-meeting-avatars-container">
-          <div class="byte-meeting-avatars">
+    <div class="world-meeting-content">
+      <div class="world-meeting-center">
+        <div class="world-meeting-avatars-container">
+          <div class="world-meeting-avatars">
             <AvatarCard
-              :avatarURL="
-                user.avatarURL ||
-                'https://avatars.githubusercontent.com/u/24741764?v=4'
-              "
-              :username="user.username || '暂无用户名'"
+              :avatarURL="user.avatarURL"
+              :username="user.username || 'No Username'"
               :muted="user.audioMuted"
               @update:muted="updateAudioMuted"
-              :src-object="user.screenSharing ? screenStream : stream"
+              :srcObject="user.screenSharing ? screenStream : stream"
               :is-me="true"
             />
             <AvatarCard
@@ -577,7 +634,7 @@ const onStartCall = async () => {
             />
           </div>
         </div>
-        <div class="byte-meeting-actions">
+        <div class="world-meeting-actions">
           <VideoButton
             :videoDevices="videoDevices"
             :selectedVideoDeviceId="selectedVideoDeviceId"
@@ -592,10 +649,10 @@ const onStartCall = async () => {
             @update:muted="updateAudioMuted"
             @update:audioDevice="updateAudioDevice"
           />
-          <div class="byte-meeting-action-container">
+          <div class="world-meeting-action-container">
             <div
               :class="{
-                'byte-meeting-action': true,
+                'world-meeting-action': true,
                 muted: !user.screenSharing,
               }"
               @click="onToggleScreenStream"
@@ -603,22 +660,22 @@ const onStartCall = async () => {
               <i class="fas fa-desktop"></i>
             </div>
           </div>
-          <div class="byte-meeting-action-container">
+          <div class="world-meeting-action-container">
             <div
               :class="{
-                'byte-meeting-action': true,
+                'world-meeting-action': true,
                 muted: !socket,
                 connecting,
               }"
-              @click="onStartCall"
+              @click="onToggleCall"
             >
               <i class="fas fa-phone"></i>
             </div>
           </div>
         </div>
       </div>
-      <div class="byte-meeting-right">
-        <div class="byte-meeting-participants">
+      <div class="world-meeting-right">
+        <div class="world-meeting-participants">
           <ParticipantCard
             v-bind="user"
             @update:videoMuted="updateVideoMuted"
@@ -630,33 +687,33 @@ const onStartCall = async () => {
             :key="user.roomId + user.username"
           />
         </div>
-        <div class="byte-meeting-chat">
-          <div class="byte-meeting-chat-messages">
+        <div class="world-meeting-chat">
+          <div class="world-meeting-chat-messages">
             <div
               v-for="message in messages"
               :key="JSON.stringify(message)"
               :class="{
-                'byte-meeting-chat-message': true,
+                'world-meeting-chat-message': true,
                 me: message.from === user.username,
               }"
             >
-              <span class="byte-meeting-chat-from">{{ message.from }}</span>
+              <span class="world-meeting-chat-from">{{ message.from }}</span>
               <br />
-              <span v-if="message.message" class="byte-meeting-chat-text">{{
+              <span v-if="message.message" class="world-meeting-chat-text">{{
                 message.message
               }}</span>
               <a
                 v-if="message.fileContent"
                 :href="message.fileUrl"
                 :download="message.filename"
-                class="byte-meeting-chat-text"
+                class="world-meeting-chat-text"
               >
                 {{ message.filename }}
               </a>
             </div>
           </div>
         </div>
-        <div class="byte-meeting-chat-inputbox">
+        <div class="world-meeting-chat-inputbox">
           <InputBox
             v-model="message"
             @send:file="sendFile"
@@ -665,28 +722,40 @@ const onStartCall = async () => {
         </div>
       </div>
     </div>
-    <div class="byte-meeting-footer"></div>
+    <div class="world-meeting-footer"></div>
   </div>
 
   <el-dialog
-    title="请输入用户信息"
+    title="Please input user info"
     v-model="userInfoDialogVisible"
     width="30%"
     :before-close="handleUserInfoDialogCancel"
   >
     <div class="input-line">
-      <label class="input-label">用户名</label>
-      <el-input placeholder="请输入用户名" v-model="user.username" clearable>
+      <label class="input-label">Username</label>
+      <el-input
+        placeholder="Please enter username"
+        v-model="user.username"
+        clearable
+      >
       </el-input>
     </div>
     <div class="input-line">
-      <label class="input-label">房间号</label>
-      <el-input placeholder="请输入房间号" v-model="user.roomId" clearable>
+      <label class="input-label">Room ID</label>
+      <el-input
+        placeholder="Please enter room ID"
+        v-model="user.roomId"
+        clearable
+      >
       </el-input>
     </div>
     <div class="input-line">
-      <label class="input-label">头像 </label>
-      <el-input placeholder="请输入头像地址" v-model="user.avatarURL" clearable>
+      <label class="input-label">Avatar</label>
+      <el-input
+        placeholder="Please enter avatar URL"
+        v-model="user.avatarURL"
+        clearable
+      >
       </el-input>
     </div>
     <template #footer>
@@ -703,7 +772,7 @@ const onStartCall = async () => {
 <style scoped lang="less">
 @import "../assets/less/common.less";
 
-.byte-meeting {
+.world-meeting {
   &-main {
     flex-grow: 1;
   }
@@ -720,12 +789,41 @@ const onStartCall = async () => {
   &-title {
     padding-left: 12px;
     font-size: 32px;
+    position: relative;
+    &-logo {
+      position: absolute;
+      top: -32px;
+      width: 64px;
+      height: 64px;
+    }
+  }
+  &-userinfo {
+    height: 100%;
+    flex-grow: 1;
+    position: relative;
+    &-container {
+      position: absolute;
+      right: 96px;
+      display: flex;
+      align-items: center;
+      top: 0;
+      bottom: 0;
+    }
   }
   &-user-icon {
-    padding-left: 124px;
+    padding-left: 32px;
     padding-top: 6px;
     font-size: 24px;
     cursor: pointer;
+    &:hover {
+      color: fade(@foreground, 50%);
+    }
+    &.connected {
+      color: @green;
+      &:hover {
+        cursor: not-allowed;
+      }
+    }
   }
   &-username {
     padding-left: 32px;
@@ -802,28 +900,28 @@ const onStartCall = async () => {
       position: relative;
       margin: 12px 12px 0 12px;
       padding-bottom: 24px;
-      .byte-meeting-chat-from {
+      .world-meeting-chat-from {
         left: 0;
         position: absolute;
       }
-      .byte-meeting-chat-text {
+      .world-meeting-chat-text {
         padding-top: 12px;
         left: 12px;
         position: absolute;
       }
       &.me {
-        .byte-meeting-chat-from {
+        .world-meeting-chat-from {
           right: 0;
           text-align: right;
         }
-        .byte-meeting-chat-text {
+        .world-meeting-chat-text {
           right: 12px;
           text-align: right;
         }
-        .byte-meeting-chat-from {
+        .world-meeting-chat-from {
           right: 0;
         }
-        .byte-meeting-chat-text {
+        .world-meeting-chat-text {
           right: 12px;
         }
       }
@@ -853,6 +951,9 @@ const onStartCall = async () => {
     }
     &.muted {
       background-color: @red;
+      &:hover {
+        background-color: lighten(@red, 20%);
+      }
     }
     &.connecting {
       background-color: fade(@red, 30%);

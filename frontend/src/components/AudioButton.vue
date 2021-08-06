@@ -81,6 +81,9 @@ const updateAudioDevice = (deviceId: string) => {
   }
   &.muted {
     background-color: @red;
+    &:hover {
+      background-color: lighten(@red, 20%);
+    }
   }
 
   &-mic-status {

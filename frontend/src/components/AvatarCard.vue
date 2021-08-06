@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from "vue";
+
 export interface AvatarCardProps {
   avatarURL: string;
   username: string;
@@ -18,16 +20,32 @@ const micMute = () => {
 const micUnmute = () => {
   emit("update:muted", false);
 };
+
+const avatarCard = ref<HTMLDivElement | null>(null);
+const toggleFullScreen = () => {
+  if (avatarCard.value) {
+    if (!document.fullscreenElement) {
+      avatarCard.value.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+};
 </script>
 
 <template>
   <div
     class="avatar-card"
+    ref="avatarCard"
     :style="{
       backgroundImage: `url(${
-        avatarURL || 'https://avatars.githubusercontent.com/u/24741764?v=4'
+        avatarURL ||
+        `https://ui-avatars.com/api/?size=960&name=${encodeURI(
+          username
+        )}&background=ffb86c&color=f8f8f2`
       })`,
     }"
+    @click="toggleFullScreen"
   >
     <video
       :srcObject="srcObject"
@@ -66,10 +84,15 @@ const micUnmute = () => {
   background-size: contain;
   background-color: @orange;
   border-radius: 30px;
+  cursor: pointer;
+  &:hover {
+    box-shadow: 0 0 50px 10px fade(@foreground, 10%);
+  }
 
   &-video {
     width: 100%;
     height: 100%;
+    border-radius: 30px;
     position: absolute;
     left: 0;
     right: 0;
