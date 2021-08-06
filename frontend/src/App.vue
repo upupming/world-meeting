@@ -1,7 +1,7 @@
 <template>
-  <div class="byte-meeting">
-    <div class="byte-meeting-sidebar">
-      <router-link to="/byte-meeting">
+  <div class="world-meeting">
+    <div class="world-meeting-sidebar">
+      <router-link to="/world-meeting">
         <i class="fas fa-home"></i>
       </router-link>
       <router-link to="/about">
@@ -34,7 +34,7 @@ body,
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.byte-meeting {
+.world-meeting {
   font-family: "Abril Text";
   width: 100%;
   height: 100%;

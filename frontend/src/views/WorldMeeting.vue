@@ -533,20 +533,20 @@ const onToggleCall = async () => {
 </script>
 
 <template>
-  <div class="byte-meeting-main">
-    <div class="byte-meeting-header">
-      <div class="byte-meeting-title">Byte Meeting</div>
-      <div class="byte-meeting-userinfo">
-        <div class="byte-meeting-userinfo-container">
-          <div class="byte-meeting-username">
+  <div class="world-meeting-main">
+    <div class="world-meeting-header">
+      <div class="world-meeting-title">WorldMeeting</div>
+      <div class="world-meeting-userinfo">
+        <div class="world-meeting-userinfo-container">
+          <div class="world-meeting-username">
             用户名: {{ user.username || "暂无" }}
           </div>
-          <div class="byte-meeting-roomId">
+          <div class="world-meeting-roomId">
             房间号: {{ user.roomId || "暂无" }}
           </div>
           <div
             :class="{
-              'byte-meeting-user-icon': true,
+              'world-meeting-user-icon': true,
               connected: socket,
             }"
             @click="!socket && (userInfoDialogVisible = true)"
@@ -556,10 +556,10 @@ const onToggleCall = async () => {
         </div>
       </div>
     </div>
-    <div class="byte-meeting-content">
-      <div class="byte-meeting-center">
-        <div class="byte-meeting-avatars-container">
-          <div class="byte-meeting-avatars">
+    <div class="world-meeting-content">
+      <div class="world-meeting-center">
+        <div class="world-meeting-avatars-container">
+          <div class="world-meeting-avatars">
             <AvatarCard
               :avatarURL="user.avatarURL"
               :username="user.username || '暂无用户名'"
@@ -578,7 +578,7 @@ const onToggleCall = async () => {
             />
           </div>
         </div>
-        <div class="byte-meeting-actions">
+        <div class="world-meeting-actions">
           <VideoButton
             :videoDevices="videoDevices"
             :selectedVideoDeviceId="selectedVideoDeviceId"
@@ -593,10 +593,10 @@ const onToggleCall = async () => {
             @update:muted="updateAudioMuted"
             @update:audioDevice="updateAudioDevice"
           />
-          <div class="byte-meeting-action-container">
+          <div class="world-meeting-action-container">
             <div
               :class="{
-                'byte-meeting-action': true,
+                'world-meeting-action': true,
                 muted: !user.screenSharing,
               }"
               @click="onToggleScreenStream"
@@ -604,10 +604,10 @@ const onToggleCall = async () => {
               <i class="fas fa-desktop"></i>
             </div>
           </div>
-          <div class="byte-meeting-action-container">
+          <div class="world-meeting-action-container">
             <div
               :class="{
-                'byte-meeting-action': true,
+                'world-meeting-action': true,
                 muted: !socket,
                 connecting,
               }"
@@ -618,8 +618,8 @@ const onToggleCall = async () => {
           </div>
         </div>
       </div>
-      <div class="byte-meeting-right">
-        <div class="byte-meeting-participants">
+      <div class="world-meeting-right">
+        <div class="world-meeting-participants">
           <ParticipantCard
             v-bind="user"
             @update:videoMuted="updateVideoMuted"
@@ -631,33 +631,33 @@ const onToggleCall = async () => {
             :key="user.roomId + user.username"
           />
         </div>
-        <div class="byte-meeting-chat">
-          <div class="byte-meeting-chat-messages">
+        <div class="world-meeting-chat">
+          <div class="world-meeting-chat-messages">
             <div
               v-for="message in messages"
               :key="JSON.stringify(message)"
               :class="{
-                'byte-meeting-chat-message': true,
+                'world-meeting-chat-message': true,
                 me: message.from === user.username,
               }"
             >
-              <span class="byte-meeting-chat-from">{{ message.from }}</span>
+              <span class="world-meeting-chat-from">{{ message.from }}</span>
               <br />
-              <span v-if="message.message" class="byte-meeting-chat-text">{{
+              <span v-if="message.message" class="world-meeting-chat-text">{{
                 message.message
               }}</span>
               <a
                 v-if="message.fileContent"
                 :href="message.fileUrl"
                 :download="message.filename"
-                class="byte-meeting-chat-text"
+                class="world-meeting-chat-text"
               >
                 {{ message.filename }}
               </a>
             </div>
           </div>
         </div>
-        <div class="byte-meeting-chat-inputbox">
+        <div class="world-meeting-chat-inputbox">
           <InputBox
             v-model="message"
             @send:file="sendFile"
@@ -666,7 +666,7 @@ const onToggleCall = async () => {
         </div>
       </div>
     </div>
-    <div class="byte-meeting-footer"></div>
+    <div class="world-meeting-footer"></div>
   </div>
 
   <el-dialog
@@ -704,7 +704,7 @@ const onToggleCall = async () => {
 <style scoped lang="less">
 @import "../assets/less/common.less";
 
-.byte-meeting {
+.world-meeting {
   &-main {
     flex-grow: 1;
   }
@@ -825,28 +825,28 @@ const onToggleCall = async () => {
       position: relative;
       margin: 12px 12px 0 12px;
       padding-bottom: 24px;
-      .byte-meeting-chat-from {
+      .world-meeting-chat-from {
         left: 0;
         position: absolute;
       }
-      .byte-meeting-chat-text {
+      .world-meeting-chat-text {
         padding-top: 12px;
         left: 12px;
         position: absolute;
       }
       &.me {
-        .byte-meeting-chat-from {
+        .world-meeting-chat-from {
           right: 0;
           text-align: right;
         }
-        .byte-meeting-chat-text {
+        .world-meeting-chat-text {
           right: 12px;
           text-align: right;
         }
-        .byte-meeting-chat-from {
+        .world-meeting-chat-from {
           right: 0;
         }
-        .byte-meeting-chat-text {
+        .world-meeting-chat-text {
           right: 12px;
         }
       }

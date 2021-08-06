@@ -20,7 +20,7 @@
               <tr>
                 <td><span class="tooltip-light">邀请链接：</span></td>
                 <td>
-                  https://bytemeet.com/invite/kusj2k3h4osdf
+                  https://world-meeting.com/invite/kusj2k3h4osdf
                   <i class="fa fa-copy"></i>
                 </td>
               </tr>

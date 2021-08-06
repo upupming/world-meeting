@@ -1,7 +1,6 @@
 {
-  "name": "webrtc-project",
+  "name": "world-meeting",
   "version": "1.0.0",
-  "main": "index.js",
   "author": "<yimingli.cs@gmail.com>",
   "license": "MIT",
   "devDependencies": {
