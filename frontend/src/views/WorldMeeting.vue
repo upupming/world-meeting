@@ -309,16 +309,26 @@ const listenForTracks = (
       remoteStream.removeTrack(event.track);
       remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
     };
-    // // 对方主动调用了 removeTrack
-    // event.track.onmute = () => {
-    //   console.log("track muted", event.track);
-    //   remoteStream.removeTrack(event.track);
-    //   remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
-    // };
+    // 对方主动调用了 removeTrack
+    let mutedTimeout: NodeJS.Timeout | undefined = undefined;
+    event.track.onmute = () => {
+      console.log("track muted", event.track);
+      // 防止过快地 mute/unmted 交互
+      if (mutedTimeout) return;
+      mutedTimeout = setTimeout(() => {
+        remoteStream.removeTrack(event.track);
+        remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+      }, 1000);
+    };
     event.track.onunmute = () => {
       console.log("track unmuted", event.track);
-      remoteStream.addTrack(event.track);
-      remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+      if (mutedTimeout) {
+        console.log("clear mutedTimeout directly");
+        clearTimeout(mutedTimeout);
+      } else {
+        remoteStream.addTrack(event.track);
+        remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+      }
     };
     remoteStream.addTrack(event.track);
   });
