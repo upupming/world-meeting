@@ -1,6 +1,7 @@
 {
-  "name": "vite-ts-router",
-  "version": "0.0.0",
+  "name": "world-meeting-frontend",
+  "version": "1.0.0",
+  "description": "World Meeting Web App implemented using WebRTC",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",

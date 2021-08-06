@@ -1,10 +1,9 @@
 {
-  "name": "bd7-backend",
+  "name": "world-meeting-backend",
   "version": "1.0.0",
-  "description": "BD7",
-  "author": "techtrainingcamp-frontend-7",
+  "description": "World Meeting Web App implemented using WebRTC",
   "private": false,
-  "main": "/bin/www.js",
+  "main": "/build/bin/www.js",
   "scripts": {
     "start": "node --inspect -r ts-node/register -r tsconfig-paths/register src/bin/www.ts",
     "dev": "cross-env NODE_ENV=development nodemon -e ts,json,js --exec \"yarn start\"",
@@ -12,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/techtrainingcamp-frontend-7/BD7.git"
+    "url": "git+https://github.com/upupming/world-meeting"
   },
   "keywords": [],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/techtrainingcamp-frontend-7/BD7/issues"
+    "url": "https://github.com/upupming/world-meeting/issues"
   },
-  "homepage": "https://github.com/techtrainingcamp-frontend-7/BD7#readme",
+  "homepage": "https://github.com/upupming/world-meeting#readme",
   "dependencies": {
     "async-wrapper-express-ts": "^3.1.1",
     "axios": "^0.21.0",

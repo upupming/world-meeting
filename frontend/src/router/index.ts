@@ -4,7 +4,7 @@ const routes = [
   {
     path: "/",
     name: "Index",
-    component: () => import("../views/ByteMeeting.vue"),
+    component: () => import("../views/WorldMeeting.vue"),
   },
   {
     path: "/about",
@@ -22,9 +22,9 @@ const routes = [
     component: () => import("../views/Room.vue"),
   },
   {
-    path: "/byte-meeting",
-    name: "ByteMeeting",
-    component: () => import("../views/ByteMeeting.vue"),
+    path: "/world-meeting",
+    name: "WorldMeeting",
+    component: () => import("../views/WorldMeeting.vue"),
   },
 ];
 

@@ -13,8 +13,8 @@ export default defineConfig({
     },
     // https://dev.to/web2033/vite-enabling-https-on-localhost-2ckf
     https: {
-      key: fs.readFileSync("byte-meeting.com-key.pem"),
-      cert: fs.readFileSync("byte-meeting.com.pem"),
+      key: fs.readFileSync("world-meeting.com-key.pem"),
+      cert: fs.readFileSync("world-meeting.com.pem"),
     },
   },
   resolve: {
