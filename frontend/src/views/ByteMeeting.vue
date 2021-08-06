@@ -94,26 +94,66 @@ const sendFile = (file: File) => {
   }
 };
 
+const removeTrack = (
+  trackToBeRemoved: MediaStreamTrack,
+  streamOfTracks: MediaStream
+) => {
+  peerConnections.forEach((peerConnection) => {
+    const sender4Track = peerConnection
+      .getSenders()
+      .find((sender) => sender.track?.id === trackToBeRemoved.id);
+    console.log(
+      "remove track from peerConnection",
+      sender4Track,
+      peerConnection
+    );
+    if (sender4Track) {
+      peerConnection.removeTrack(sender4Track);
+    }
+  });
+  streamOfTracks.removeTrack(trackToBeRemoved);
+};
+
+const removeTracks = (
+  tracksToBeRemoved: Ref<MediaStreamTrack[]>,
+  streamOfTracks: MediaStream
+) => {
+  tracksToBeRemoved.value.forEach((track) => {
+    removeTrack(track, streamOfTracks);
+  });
+  tracksToBeRemoved.value = [];
+};
+
+// See the upgrade demo: https://github.com/webrtc/samples/blob/6ee1b909e4a04a8f5f02283e70cbadb8e73742b1/src/content/peerconnection/upgrade/js/main.js#L178
+const upgradeRTCWithNewTracks = (tracksToBeAdded: Ref<MediaStreamTrack[]>) => {
+  peerConnections.forEach(async (peerConnection, remoteUsername) => {
+    tracksToBeAdded.value.forEach((track) => {
+      peerConnection.addTrack(track);
+    });
+    // 需要重新进行 offer-answer 过程
+    const offer = await peerConnection.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+    });
+    await peerConnection.setLocalDescription(offer);
+    console.log("created offer", offer);
+
+    socket.value?.emit("createOffer", {
+      from: user.username,
+      to: remoteUsername,
+      offer: {
+        type: offer.type,
+        sdp: offer.sdp,
+      },
+    });
+  });
+};
+
 const onToggleScreenStream = async () => {
   if (user.screenSharing) {
     user.screenSharing = false;
     // 移除之前的屏幕共享 track
-    screenTracks.value.forEach((track) => {
-      peerConnections.forEach((peerConnection) => {
-        const sender4Track = peerConnection
-          .getSenders()
-          .find((sender) => sender.track?.id === track.id);
-        console.log(
-          "remove screen track from peerConnection",
-          sender4Track,
-          peerConnection
-        );
-        if (sender4Track) {
-          peerConnection.removeTrack(sender4Track);
-        }
-      });
-      screenStream.removeTrack(track);
-    });
+    removeTracks(screenTracks, screenStream);
   } else {
     user.screenSharing = true;
     // 屏幕贡献的只是视频，音频不管
@@ -124,43 +164,34 @@ const onToggleScreenStream = async () => {
     screenTracks.value = screenStreamTmp.getVideoTracks();
     screenTracks.value.forEach((track) => {
       screenStream.addTrack(track);
+      // 停止共享的话
+      track.onended = () => {
+        console.log("screenStream track ended", track);
+        removeTrack(track, screenStream);
+        user.screenSharing = false;
+      };
     });
-    peerConnections.forEach(async (peerConnection, remoteUsername) => {
-      screenTracks.value.forEach((track) => {
-        console.log("onToggleScreenStream add track", peerConnection, track);
-        peerConnection.addTrack(track);
-      });
-      // 需要重新进行 offer-answer 过程
-      const offer = await peerConnection.createOffer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
-      });
-      await peerConnection.setLocalDescription(offer);
-      console.log("created offer", offer);
-
-      socket.value?.emit("createOffer", {
-        from: user.username,
-        to: remoteUsername,
-        offer: {
-          type: offer.type,
-          sdp: offer.sdp,
-        },
-      });
-    });
+    upgradeRTCWithNewTracks(screenTracks);
   }
 };
 
 onMounted(async () => {
   console.log("mounted");
-  // 只是为了获取权限，使得 enumerateDevices 能够正常运行
-  (
-    await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
-    })
-  )
-    .getTracks()
-    .forEach((track) => track.stop());
+  try {
+    // 只是为了获取权限，使得 enumerateDevices 能够正常运行
+    (
+      await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      })
+    )
+      .getTracks()
+      .forEach((track) => track.stop());
+  } catch (err) {
+    ElMessage(`获取音视频失败，可能无法进行后续操作: ${JSON.stringify(err)}`);
+    console.error(err);
+    return;
+  }
 
   const devices = await navigator.mediaDevices.enumerateDevices();
   videoDevices.value = devices.filter((device) => device.kind === "videoinput");
@@ -175,23 +206,7 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
   user.videoMuted = updatedMuted;
   if (user.videoMuted) {
     // 移除之前的视频 track
-    videoTracks.value.forEach((track) => {
-      peerConnections.forEach((peerConnection) => {
-        const sender4Track = peerConnection
-          .getSenders()
-          .find((sender) => sender.track?.id === track.id);
-        console.log(
-          "remove video track from peerConnection",
-          sender4Track,
-          peerConnection
-        );
-        if (sender4Track) {
-          peerConnection.removeTrack(sender4Track);
-        }
-      });
-      stream.removeTrack(track);
-    });
-    videoTracks.value = [];
+    removeTracks(videoTracks, stream);
   } else {
     // 请求视频 track
     const videoStream = await navigator.mediaDevices.getUserMedia({
@@ -202,28 +217,7 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
     videoTracks.value.forEach((track) => {
       stream.addTrack(track);
     });
-    peerConnections.forEach(async (peerConnection, remoteUsername) => {
-      videoTracks.value.forEach((track) => {
-        console.log("updateVideoMuted add track", peerConnection, track);
-        peerConnection.addTrack(track);
-      });
-      // 需要重新进行 offer-answer 过程
-      const offer = await peerConnection.createOffer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
-      });
-      await peerConnection.setLocalDescription(offer);
-      console.log("created offer", offer);
-
-      socket.value?.emit("createOffer", {
-        from: user.username,
-        to: remoteUsername,
-        offer: {
-          type: offer.type,
-          sdp: offer.sdp,
-        },
-      });
-    });
+    upgradeRTCWithNewTracks(videoTracks);
   }
 };
 const updateAudioMuted = async (updatedMuted: boolean) => {
@@ -232,23 +226,7 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
   user.audioMuted = updatedMuted;
   if (user.audioMuted) {
     // 移除之前的音频 track
-    audioTracks.value.forEach((track) => {
-      peerConnections.forEach((peerConnection) => {
-        const sender4Track = peerConnection
-          .getSenders()
-          .find((sender) => sender.track?.id === track.id);
-        console.log(
-          "remove audio track from peerConnection",
-          sender4Track,
-          peerConnection
-        );
-        if (sender4Track) {
-          peerConnection.removeTrack(sender4Track);
-        }
-      });
-      stream.removeTrack(track);
-    });
-    audioTracks.value = [];
+    removeTracks(audioTracks, stream);
   } else {
     // 请求音频 track
     const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -259,28 +237,7 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
     audioTracks.value.forEach((track) => {
       stream.addTrack(track);
     });
-    peerConnections.forEach(async (peerConnection, remoteUsername) => {
-      audioTracks.value.forEach((track) => {
-        console.log("updateAudioMuted add track", peerConnection, track);
-        peerConnection.addTrack(track);
-      });
-      // 需要重新进行 offer-answer 过程
-      const offer = await peerConnection.createOffer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
-      });
-      await peerConnection.setLocalDescription(offer);
-      console.log("created offer", offer);
-
-      socket.value?.emit("createOffer", {
-        from: user.username,
-        to: remoteUsername,
-        offer: {
-          type: offer.type,
-          sdp: offer.sdp,
-        },
-      });
-    });
+    upgradeRTCWithNewTracks(audioTracks);
   }
 };
 const updateVideoDevice = (updatedVideoDevice: string) => {
@@ -399,8 +356,8 @@ const connectPeerWithNewOffer = async (socket: Socket, remoteUser: User) => {
 const onToggleCall = async () => {
   if (socket.value) {
     console.log("断开连接");
+    ElMessage("连接已断开");
     socket.value.disconnect();
-    socket.value = null;
     return;
   }
 
@@ -434,6 +391,7 @@ const onToggleCall = async () => {
     connecting.value = false;
     remoteStreams.clear();
     remoteUsers.value = [];
+    socket.value = null;
   });
   // 新加入房间的用户负责给之前所有的人都发一个 offer
   socket.value.on("retrieve-users", (receivedUsers: User[]) => {
@@ -560,6 +518,11 @@ const onToggleCall = async () => {
     }
     remoteStreams.delete(deletedUsername);
   });
+  socket.value.on("dup-username", () => {
+    console.log("dup-username");
+    ElMessage("用户名重复了，请加入其他房间或者修改用户名");
+    socket.value?.disconnect();
+  });
 
   // 将 username 和 roomId 附在 socket 上之后再 connect
   socket.value.auth = user;
@@ -605,7 +568,7 @@ const onToggleCall = async () => {
               :username="user.username || '暂无用户名'"
               :muted="user.audioMuted"
               @update:muted="updateAudioMuted"
-              :src-object="user.screenSharing ? screenStream : stream"
+              :srcObject="user.screenSharing ? screenStream : stream"
               :is-me="true"
             />
             <AvatarCard

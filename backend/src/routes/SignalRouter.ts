@@ -23,8 +23,19 @@ export const signalServerInit = (server: http.Server): void => {
   }).of("/signal");
   io.on("connection", async (socket) => {
     console.log(socket);
-    // 将这个用户加入到内存数据中
     let user = socket.handshake.auth as User;
+
+    if (
+      usersInRoom.get(user.roomId) &&
+      [...usersInRoom.get(user.roomId)!.values()].some(
+        (u) => u.username === user.username
+      )
+    ) {
+      socket.emit("dup-username");
+      return;
+    }
+
+    // 将这个用户加入到内存数据中
     socket.join(user.roomId);
     username2Socket.set(user.username, socket);
     // 第一次连接成功，将其他所有 user 发给这个用户
