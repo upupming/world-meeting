@@ -30,8 +30,8 @@ const audioDevices: Ref<MediaDeviceInfo[]> = ref([]);
 const selectedVideoDeviceId = ref("");
 const selectedAudioDeviceId = ref("");
 
-const stream = new MediaStream();
-const screenStream = new MediaStream();
+const stream = ref(new MediaStream());
+const screenStream = ref(new MediaStream());
 
 const videoTracks: Ref<MediaStreamTrack[]> = ref([]);
 const audioTracks: Ref<MediaStreamTrack[]> = ref([]);
@@ -153,7 +153,7 @@ const onToggleScreenStream = async () => {
   if (user.screenSharing) {
     user.screenSharing = false;
     // 移除之前的屏幕共享 track
-    removeTracks(screenTracks, screenStream);
+    removeTracks(screenTracks, screenStream.value);
   } else {
     user.screenSharing = true;
     // 屏幕贡献的只是视频，音频不管
@@ -163,11 +163,12 @@ const onToggleScreenStream = async () => {
     })) as MediaStream;
     screenTracks.value = screenStreamTmp.getVideoTracks();
     screenTracks.value.forEach((track) => {
-      screenStream.addTrack(track);
+      screenStream.value.addTrack(track);
       // 停止共享的话
       track.onended = () => {
         console.log("screenStream track ended", track);
-        removeTrack(track, screenStream);
+        removeTrack(track, screenStream.value);
+        screenStream.value = new MediaStream(screenStream.value);
         user.screenSharing = false;
       };
     });
@@ -206,7 +207,10 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
   user.videoMuted = updatedMuted;
   if (user.videoMuted) {
     // 移除之前的视频 track
-    removeTracks(videoTracks, stream);
+    removeTracks(videoTracks, stream.value);
+    // 建一个新的 stream，不然的话会出现 video 组件继续显示卡住的图片的情况
+    // 这样重新赋新值的话就让 video 重新不可见了，展示默认的头像元素
+    stream.value = new MediaStream(stream.value);
   } else {
     // 请求视频 track
     const videoStream = await navigator.mediaDevices.getUserMedia({
@@ -215,7 +219,7 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
     });
     videoTracks.value = videoStream.getVideoTracks();
     videoTracks.value.forEach((track) => {
-      stream.addTrack(track);
+      stream.value.addTrack(track);
     });
     upgradeRTCWithNewTracks(videoTracks);
   }
@@ -226,7 +230,7 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
   user.audioMuted = updatedMuted;
   if (user.audioMuted) {
     // 移除之前的音频 track
-    removeTracks(audioTracks, stream);
+    removeTracks(audioTracks, stream.value);
   } else {
     // 请求音频 track
     const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -235,7 +239,7 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
     });
     audioTracks.value = audioStream.getAudioTracks();
     audioTracks.value.forEach((track) => {
-      stream.addTrack(track);
+      stream.value.addTrack(track);
     });
     upgradeRTCWithNewTracks(audioTracks);
   }
@@ -279,15 +283,17 @@ const listenForTracks = (
       remoteStream,
       event.track
     );
-    // 流的话
+    // 流终止的话
     event.track.onended = () => {
       console.log("track ended", event.track);
       remoteStream.removeTrack(event.track);
+      remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
     };
     // 对方主动调用了 removeTrack
     event.track.onmute = () => {
       console.log("track muted", event.track);
       remoteStream.removeTrack(event.track);
+      remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
     };
     remoteStream.addTrack(event.track);
   });
@@ -535,7 +541,12 @@ const onToggleCall = async () => {
 <template>
   <div class="world-meeting-main">
     <div class="world-meeting-header">
-      <div class="world-meeting-title">WorldMeeting</div>
+      <div class="world-meeting-title">
+        <img
+          class="world-meeting-title-logo"
+          src="/logo/logo_transparent.png"
+        />
+      </div>
       <div class="world-meeting-userinfo">
         <div class="world-meeting-userinfo-container">
           <div class="world-meeting-username">
@@ -721,6 +732,13 @@ const onToggleCall = async () => {
   &-title {
     padding-left: 12px;
     font-size: 32px;
+    position: relative;
+    &-logo {
+      position: absolute;
+      top: -32px;
+      width: 64px;
+      height: 64px;
+    }
   }
   &-userinfo {
     height: 100%;
