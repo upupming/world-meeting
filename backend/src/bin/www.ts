@@ -2,8 +2,6 @@ import http from "http";
 import debug from "debug";
 
 import config from "config";
-import { init } from "database";
-import { LiveSocketInitial } from "@routes/LiveRouter";
 import { signalServerInit } from "@routes/SignalRouter";
 import app from "app";
 
@@ -23,20 +21,16 @@ export const SERVER = http.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-init()
-  .then(() => {
-    SERVER.listen(PORT, () => {
-      console.log(`服务器开始监听 ${PORT} 端口！`);
-    });
-    SERVER.on("error", onError);
-    SERVER.on("listening", onListening);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    LiveSocketInitial(SERVER);
-    signalServerInit(SERVER);
-  })
-  .catch((e) => {
-    console.log(String(e));
+try {
+  SERVER.listen(PORT, () => {
+    console.log(`服务器开始监听 ${PORT} 端口！`);
   });
+  SERVER.on("error", onError);
+  SERVER.on("listening", onListening);
+  signalServerInit(SERVER);
+} catch (e) {
+  console.error(JSON.stringify(e));
+}
 /**
  * Normalize a port into a number, string, or false.
  */
@@ -71,9 +65,11 @@ function onError(error) {
     case "EACCES":
       console.error(bind + " 需要更高权限");
       process.exit(1);
+    // eslint-disable-next-line no-fallthrough
     case "EADDRINUSE":
       console.error(bind + " 已被占用");
       process.exit(1);
+    // eslint-disable-next-line no-fallthrough
     default:
       throw error;
   }
