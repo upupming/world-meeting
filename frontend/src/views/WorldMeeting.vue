@@ -315,6 +315,11 @@ const listenForTracks = (
       remoteStream.removeTrack(event.track);
       remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
     };
+    event.track.onunmute = () => {
+      console.log("track unmuted", event.track);
+      remoteStream.addTrack(event.track);
+      remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+    };
     remoteStream.addTrack(event.track);
   });
 };
@@ -546,7 +551,9 @@ const onToggleCall = async () => {
   });
   socket.value.on("dup-username", () => {
     console.log("dup-username");
-    ElMessage("用户名重复了，请加入其他房间或者修改用户名");
+    ElMessage(
+      "Duplicate username, please change your username or join another room"
+    );
     socket.value?.disconnect();
   });
 
@@ -570,10 +577,10 @@ const onToggleCall = async () => {
       <div class="world-meeting-userinfo">
         <div class="world-meeting-userinfo-container">
           <div class="world-meeting-username">
-            用户名: {{ user.username || "暂无" }}
+            Username: {{ user.username || "暂无" }}
           </div>
           <div class="world-meeting-roomId">
-            房间号: {{ user.roomId || "暂无" }}
+            Room ID: {{ user.roomId || "暂无" }}
           </div>
           <div
             :class="{
@@ -593,7 +600,7 @@ const onToggleCall = async () => {
           <div class="world-meeting-avatars">
             <AvatarCard
               :avatarURL="user.avatarURL"
-              :username="user.username || '暂无用户名'"
+              :username="user.username || 'No Username'"
               :muted="user.audioMuted"
               @update:muted="updateAudioMuted"
               :srcObject="user.screenSharing ? screenStream : stream"
@@ -701,24 +708,36 @@ const onToggleCall = async () => {
   </div>
 
   <el-dialog
-    title="请输入用户信息"
+    title="Please input user info"
     v-model="userInfoDialogVisible"
     width="30%"
     :before-close="handleUserInfoDialogCancel"
   >
     <div class="input-line">
-      <label class="input-label">用户名</label>
-      <el-input placeholder="请输入用户名" v-model="user.username" clearable>
+      <label class="input-label">Username</label>
+      <el-input
+        placeholder="Please enter username"
+        v-model="user.username"
+        clearable
+      >
       </el-input>
     </div>
     <div class="input-line">
-      <label class="input-label">房间号</label>
-      <el-input placeholder="请输入房间号" v-model="user.roomId" clearable>
+      <label class="input-label">Room ID</label>
+      <el-input
+        placeholder="Please enter room ID"
+        v-model="user.roomId"
+        clearable
+      >
       </el-input>
     </div>
     <div class="input-line">
-      <label class="input-label">头像 </label>
-      <el-input placeholder="请输入头像地址" v-model="user.avatarURL" clearable>
+      <label class="input-label">Avatar</label>
+      <el-input
+        placeholder="Please enter avatar URL"
+        v-model="user.avatarURL"
+        clearable
+      >
       </el-input>
     </div>
     <template #footer>
