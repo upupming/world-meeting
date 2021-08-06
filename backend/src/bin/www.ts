@@ -16,7 +16,7 @@ app.set("port", PORT);
 /**
  * Create HTTP server.
  */
-export const SERVER = http.createServer(app);
+const SERVER = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -84,3 +84,5 @@ function onListening() {
     typeof addr === "string" ? `Pipe ${addr}` : `端口 ${addr?.port || ""}`;
   DEBUG("正在监听" + bind);
 }
+
+export default SERVER;

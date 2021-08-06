@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node --inspect -r ts-node/register -r tsconfig-paths/register src/bin/www.ts",
     "dev": "cross-env NODE_ENV=development nodemon -e ts,json,js --exec \"yarn start\"",
-    "serve": "cross-env NODE_ENV=production nodemon -e ts,json,js --exec \"yarn start\""
+    "serve": "cross-env NODE_ENV=production nodemon -e ts,json,js --exec \"yarn start\"",
+    "build": "ttsc"
   },
   "repository": {
     "type": "git",
@@ -32,9 +33,7 @@
     "mysql2": "^2.1.0",
     "omit.js": "^2.0.2",
     "sequelize": "^6.3.5",
-    "socket.io": "4.1.3"
-  },
-  "devDependencies": {
+    "socket.io": "4.1.3",
     "@types/express": "^4.17.11",
     "@types/express-jwt": "^6.0.0",
     "@types/jsonwebtoken": "^8.5.0",
