@@ -45,7 +45,7 @@ const socket: Ref<null | Socket> = ref(null);
 const remoteUsers: Ref<User[]> = ref([]);
 
 const user = reactive({
-  username: lorem.generateWords(1),
+  username: lorem.generateWords(2),
   roomId: lorem.generateWords(1),
   avatarURL: "",
   videoMuted: true,
@@ -561,10 +561,7 @@ const onToggleCall = async () => {
         <div class="byte-meeting-avatars-container">
           <div class="byte-meeting-avatars">
             <AvatarCard
-              :avatarURL="
-                user.avatarURL ||
-                'https://avatars.githubusercontent.com/u/24741764?v=4'
-              "
+              :avatarURL="user.avatarURL"
               :username="user.username || '暂无用户名'"
               :muted="user.audioMuted"
               @update:muted="updateAudioMuted"
