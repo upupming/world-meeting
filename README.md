@@ -31,6 +31,17 @@ yarn
 yarn dev
 ```
 
+### Test in different networks
+
+1. Download [`ngrok`](https://ngrok.com/download)
+2. Run the `http` command to forward the local dev server to public network
+
+    ```bash
+    ngrok http 443
+    ```
+
+3. Inspect the app using the `xxx.ngrok.io` link
+
 ## How it works
 
 - Use native `RTCPeerConnection` to form a [Mesh topology network](https://medium.com/@khan_honney/webrtc-servers-and-multi-party-communication-in-webrtc-6bf3870b15eb#fcf7) in a single room
@@ -56,3 +67,6 @@ heroku open
 6. https://webrtc.org/getting-started/firebase-rtc-codelab
 7. WebRTC 技术详解, 栗伟
 8. WebRTC 音视频实时互动技术——原理、实战与源码分析, 李超
+9. https://www.youtube.com/watch?v=RPireLVSPAo
+10. https://github.com/coturn/coturn
+11. https://meetrix.io/blog/webrtc/coturn/installation.html

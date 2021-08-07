@@ -131,22 +131,7 @@ const upgradeRTCWithNewTracks = (tracksToBeAdded: Ref<MediaStreamTrack[]>) => {
     tracksToBeAdded.value.forEach((track) => {
       peerConnection.addTrack(track);
     });
-    // 需要重新进行 offer-answer 过程
-    const offer = await peerConnection.createOffer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: true,
-    });
-    await peerConnection.setLocalDescription(offer);
-    console.log("created offer", offer);
-
-    socket.value?.emit("createOffer", {
-      from: user.username,
-      to: remoteUsername,
-      offer: {
-        type: offer.type,
-        sdp: offer.sdp,
-      },
-    });
+    createOffer(peerConnection, remoteUsername);
   });
 };
 
@@ -158,10 +143,17 @@ const onToggleScreenStream = async () => {
   } else {
     user.screenSharing = true;
     // 屏幕贡献的只是视频，音频不管
-    const screenStreamTmp = (await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: false,
-    })) as MediaStream;
+    let screenStreamTmp: undefined | MediaStream = undefined;
+    try {
+      screenStreamTmp = (await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false,
+      })) as MediaStream;
+    } catch (e) {
+      user.screenSharing = false;
+      ElMessage(`获取显示设备失败 ${JSON.stringify(e)}`);
+      return;
+    }
     screenTracks.value = screenStreamTmp.getVideoTracks();
     screenTracks.value.forEach((track) => {
       screenStream.value.addTrack(track);
@@ -214,16 +206,21 @@ const updateVideoMuted = async (updatedMuted: boolean) => {
     // 这样重新赋新值的话就让 video 重新不可见了，展示默认的头像元素
     stream.value = new MediaStream(stream.value);
   } else {
-    // 请求视频 track
-    const videoStream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: true,
-    });
-    videoTracks.value = videoStream.getVideoTracks();
-    videoTracks.value.forEach((track) => {
-      stream.value.addTrack(track);
-    });
-    upgradeRTCWithNewTracks(videoTracks);
+    try {
+      // 请求视频 track
+      const videoStream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: true,
+      });
+      videoTracks.value = videoStream.getVideoTracks();
+      videoTracks.value.forEach((track) => {
+        stream.value.addTrack(track);
+      });
+      upgradeRTCWithNewTracks(videoTracks);
+    } catch (err) {
+      ElMessage(`获取音视频失败，可能无法进行后续操作: ${JSON.stringify(err)}`);
+      user.videoMuted = true;
+    }
   }
 };
 const updateAudioMuted = async (updatedMuted: boolean) => {
@@ -234,16 +231,23 @@ const updateAudioMuted = async (updatedMuted: boolean) => {
     // 移除之前的音频 track
     removeTracks(audioTracks, stream.value);
   } else {
-    // 请求音频 track
-    const audioStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: false,
-    });
-    audioTracks.value = audioStream.getAudioTracks();
-    audioTracks.value.forEach((track) => {
-      stream.value.addTrack(track);
-    });
-    upgradeRTCWithNewTracks(audioTracks);
+    try {
+      // 请求音频 track
+      const audioStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+      audioTracks.value = audioStream.getAudioTracks();
+      audioTracks.value.forEach((track) => {
+        stream.value.addTrack(track);
+      });
+      upgradeRTCWithNewTracks(audioTracks);
+    } catch (err) {
+      ElMessage(`获取音视频失败，可能无法进行后续操作: ${JSON.stringify(err)}`);
+      console.error(err);
+      user.audioMuted = true;
+      return;
+    }
   }
 };
 const updateVideoDevice = (updatedVideoDevice: string) => {
@@ -315,28 +319,24 @@ const listenForTracks = (
       event.track.onended = event.track.onmute = event.track.onunmute = null;
     };
     // 对方主动调用了 removeTrack
-    let mutedTimeout: NodeJS.Timeout | undefined = undefined;
     event.track.onmute = () => {
       console.log("track muted", event.track);
-      // 防止过快地 mute/unmted 交互
-      if (mutedTimeout) return;
-      mutedTimeout = setTimeout(() => {
+      if (remoteStreams.get(remoteUser)) {
+        const remoteStream = remoteStreams.get(remoteUser)!.value;
         remoteStream.removeTrack(event.track);
-        if (remoteStreams.get(remoteUser)) {
-          remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
-        }
-      }, 1000);
+        remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+      } else {
+        event.track.onmute = event.track.onmute = event.track.onended = null;
+      }
     };
     event.track.onunmute = () => {
       console.log("track unmuted", event.track);
-      if (mutedTimeout) {
-        console.log("clear mutedTimeout directly");
-        clearTimeout(mutedTimeout);
-      } else {
+      if (remoteStreams.get(remoteUser)) {
+        const remoteStream = remoteStreams.get(remoteUser)!.value;
         remoteStream.addTrack(event.track);
-        if (remoteStreams.get(remoteUser)) {
-          remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
-        }
+        remoteStreams.get(remoteUser)!.value = new MediaStream(remoteStream);
+      } else {
+        event.track.onmute = event.track.onmute = event.track.onended = null;
       }
     };
     remoteStream.addTrack(event.track);
@@ -352,12 +352,35 @@ function collectIceCandidates(
   peerConnection.addEventListener("icecandidate", (event) => {
     if (event.candidate) {
       console.log("send local ice candidate to remote", event.candidate);
-      socket.emit("newIcecandidate", {
+      socket?.emit("newIcecandidate", {
         candidate: event.candidate,
       });
     }
   });
 }
+
+const createOffer = async (
+  peerConnection: RTCPeerConnection,
+  remoteUsername: string
+) => {
+  // offer 的类型是 RTCSessionDescriptionInit，后面调用 new RTCSessionDescription 的时候可以传入这个类型
+  // 创建 offer 之前必须先把 localStream 里面加入一些 track 才行，否则不会触发 icecandidate 事件: https://stackoverflow.com/a/27758788/8242705
+  const offer = await peerConnection.createOffer({
+    offerToReceiveAudio: true,
+    offerToReceiveVideo: true,
+  });
+  await peerConnection.setLocalDescription(offer);
+  console.log("created offer", offer);
+
+  socket.value?.emit("createOffer", {
+    from: user.username,
+    to: remoteUsername,
+    offer: {
+      type: offer.type,
+      sdp: offer.sdp,
+    },
+  });
+};
 
 // 请求并和一个对等方建立连接
 const connectPeerWithNewOffer = async (socket: Socket, remoteUser: User) => {
@@ -366,6 +389,10 @@ const connectPeerWithNewOffer = async (socket: Socket, remoteUser: User) => {
   const peerConnection = new RTCPeerConnection(configuration);
   listenForTracks(peerConnection, remoteUser.username);
   registerPeerConnectionListeners(peerConnection, remoteUser.username);
+  peerConnection.onnegotiationneeded = async () => {
+    console.log("onnegotiationneeded");
+    createOffer(peerConnection, remoteUser.username);
+  };
 
   videoTracks.value.forEach((track) => {
     console.log("offer track", track);
@@ -384,22 +411,22 @@ const connectPeerWithNewOffer = async (socket: Socket, remoteUser: User) => {
 
   peerConnections.set(remoteUser.username, peerConnection);
 
-  // offer 的类型是 RTCSessionDescriptionInit，后面调用 new RTCSessionDescription 的时候可以传入这个类型
-  // 创建 offer 之前必须先把 localStream 里面加入一些 track 才行，否则不会触发 icecandidate 事件: https://stackoverflow.com/a/27758788/8242705
-  const offer = await peerConnection.createOffer({
+  createOffer(peerConnection, remoteUser.username);
+};
+
+const createAnswer = async (
+  peerConnection: RTCPeerConnection,
+  fromUsername: string
+) => {
+  const answer = await peerConnection.createAnswer({
     offerToReceiveAudio: true,
     offerToReceiveVideo: true,
   });
-  await peerConnection.setLocalDescription(offer);
-  console.log("created offer", offer);
-
-  socket.emit("createOffer", {
+  await peerConnection.setLocalDescription(answer);
+  socket.value?.emit("createAnswer", {
+    answer,
     from: user.username,
-    to: remoteUser.username,
-    offer: {
-      type: offer.type,
-      sdp: offer.sdp,
-    },
+    to: fromUsername,
   });
 };
 
@@ -428,13 +455,17 @@ const onToggleCall = async () => {
   connecting.value = true;
   console.log("Create PeerConnection with configuration: ", configuration);
 
-  socket.value = io("/signal", { autoConnect: false });
+  socket.value = io("/signal", {
+    autoConnect: false,
+    // transports: ["polling"],
+    // upgrade: false,
+  });
   socket.value.on("connect", () => {
     console.log("client connect");
   });
 
-  socket.value.on("disconnect", () => {
-    console.log("client disconnect");
+  socket.value.on("disconnect", (...args) => {
+    console.log("client disconnect", ...args);
     peerConnections.forEach((pc) => pc.close());
     peerConnections.clear();
     messages.value = [];
@@ -473,16 +504,7 @@ const onToggleCall = async () => {
       console.log("用户的音视频状态改变导致重新 offer-answer");
       peerConnection = peerConnections.get(from)!;
       await peerConnection.setRemoteDescription(offer);
-      const answer = await peerConnection.createAnswer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
-      });
-      await peerConnection.setLocalDescription(answer);
-      socket.value!.emit("createAnswer", {
-        answer,
-        from: user.username,
-        to: from,
-      });
+      await createAnswer(peerConnection, from);
       return;
     }
     peerConnection = new RTCPeerConnection(configuration);
@@ -507,17 +529,7 @@ const onToggleCall = async () => {
       peerConnection.addTrack(track);
     });
 
-    const answer = await peerConnection.createAnswer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: true,
-    });
-    await peerConnection.setLocalDescription(answer);
-
-    socket.value!.emit("createAnswer", {
-      answer,
-      from: user.username,
-      to: from,
-    });
+    createAnswer(peerConnection, from);
   });
   socket.value.on("new-answer", async ({ answer, from }) => {
     console.log("new answer", answer, from, Date.now());

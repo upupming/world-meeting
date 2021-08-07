@@ -20,6 +20,8 @@ export const signalServerInit = (server: http.Server): void => {
   // https://github.com/socketio/socket.io/issues/3946#issuecomment-850704139
   const io = new Server(server, {
     maxHttpBufferSize: 1e8,
+    // transports: ["polling"],
+    // allowUpgrades: false,
   }).of("/signal");
   io.on("connection", async (socket) => {
     console.log(socket);

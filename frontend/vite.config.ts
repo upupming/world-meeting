@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     host: "0.0.0.0",
+    port: 443,
     proxy: {
       "/api": "http://localhost:8005",
       "/socket.io": "http://localhost:8005",

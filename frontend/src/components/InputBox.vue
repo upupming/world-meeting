@@ -66,7 +66,7 @@ const onClearFile = () => {
           disabled: message.length === 0 && filename === undefined,
         }"
       >
-        <button @click="onSend">发送</button>
+        <button @click="onSend">Send</button>
       </div>
     </div>
   </div>

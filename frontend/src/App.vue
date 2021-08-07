@@ -35,7 +35,8 @@ body,
   -moz-osx-font-smoothing: grayscale;
 }
 .world-meeting {
-  font-family: "Abril Text";
+  font-family: "Times New Roman", serif, "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
   width: 100%;
   height: 100%;
 
