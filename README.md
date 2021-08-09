@@ -21,7 +21,7 @@ yarn
 yarn dev
 ```
 
-Then open: https://localhost:3000/#/
+Then open: https://localhost/#/
 
 Backend:
 
